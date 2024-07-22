@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -29,6 +30,22 @@ namespace IDPServer.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserTypeId = table.Column<int>(type: "int", nullable: true),
+                    ShopCategoryId = table.Column<int>(type: "int", nullable: true),
+                    ShopActivityId = table.Column<int>(type: "int", nullable: true),
+                    GenderId = table.Column<int>(type: "int", nullable: true),
+                    IdentityId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NationalCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ShopName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Birthday = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CcPhoto = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedByUserId = table.Column<int>(type: "int", nullable: true),
+                    CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ModifiedByUserId = table.Column<int>(type: "int", nullable: true),
+                    ModifiedDateTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),

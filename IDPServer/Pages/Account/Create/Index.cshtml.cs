@@ -76,11 +76,26 @@ namespace IDPServer.Pages.Account.Create
 
             if (ModelState.IsValid)
             {
+                // Split the Input.Name into FirstName and LastName
+                var nameParts = Input.Name!.Split(' ', 2); // Split only on the first space
+                var firstName = nameParts.Length > 0 ? nameParts[0] : string.Empty;
+                var lastName = nameParts.Length > 1 ? nameParts[1] : string.Empty;
+
+
                 var user = new ApplicationUser
                 {
                     UserName = Input.Username,
                     Email = Input.Email,
-                    NormalizedUserName = Input.Name,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    PhoneNumber = "0912244935",
+                    NationalCode = "4711046003",
+                    ShopName = "NILL shop",
+                    Birthday = DateTime.Now,
+                    CcPhoto = "/upload/myphoto.jpg",
+                    CreatedDateTime = DateTime.Now,
+                    EmailConfirmed = true  ,
+                    BusinessId = Guid.NewGuid(),
                 };
 
                 // Create the user asynchronously
