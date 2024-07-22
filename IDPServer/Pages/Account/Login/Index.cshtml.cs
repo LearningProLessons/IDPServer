@@ -25,6 +25,7 @@ namespace IDPServer.Pages.Account.Login
         private readonly IEventService _events;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IIdentityProviderStore _identityProviderStore;
+        private readonly ISessionManagementService _sessionManagementService;
 
         public ViewModel View { get; set; } = default!;
 
@@ -32,6 +33,7 @@ namespace IDPServer.Pages.Account.Login
         public InputModel Input { get; set; } = default!;
 
         public Index(
+            ISessionManagementService sessionManagementService,
             IIdentityServerInteractionService interaction,
             IAuthenticationSchemeProvider schemeProvider,
             IIdentityProviderStore identityProviderStore,
@@ -39,6 +41,7 @@ namespace IDPServer.Pages.Account.Login
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager)
         {
+            _sessionManagementService = sessionManagementService;
             _userManager = userManager;
             _signInManager = signInManager;
             _interaction = interaction;
@@ -122,7 +125,7 @@ namespace IDPServer.Pages.Account.Login
 
                     // request for a local page
                     if (Url.IsLocalUrl(Input.ReturnUrl))
-                    {
+                    {                      
                         return Redirect(Input.ReturnUrl);
                     }
                     else if (string.IsNullOrEmpty(Input.ReturnUrl))
