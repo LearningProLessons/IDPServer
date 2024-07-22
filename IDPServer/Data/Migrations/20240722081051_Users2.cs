@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace IDPServer.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class Users1 : Migration
+    public partial class Users2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
