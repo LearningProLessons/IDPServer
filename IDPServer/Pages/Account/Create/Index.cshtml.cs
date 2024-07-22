@@ -94,7 +94,7 @@ namespace IDPServer.Pages.Account.Create
                     Birthday = DateTime.Now,
                     CcPhoto = "/upload/myphoto.jpg",
                     CreatedDateTime = DateTime.Now,
-                    EmailConfirmed = true  ,
+                    EmailConfirmed = true,
                     BusinessId = Guid.NewGuid(),
                 };
 

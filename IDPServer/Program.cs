@@ -25,7 +25,7 @@ try
     if (args.Contains("/seed"))
     {
         Console.WriteLine("Seeding database...");
-        SeedData.EnsureSeedData(app);
+        await SeedData.EnsureSeedDataAsync(app);
         Console.WriteLine("Done seeding database. Exiting.");
         return;
     }

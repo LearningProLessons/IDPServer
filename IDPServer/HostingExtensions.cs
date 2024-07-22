@@ -1,6 +1,8 @@
 using Duende.IdentityServer;
 using IDPServer.Data;
 using IDPServer.Models;
+using IDPServer.Pages.Admin.ApiScopes;
+using IDPServer.Pages.Admin.IdentityScopes;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -10,17 +12,64 @@ internal static class HostingExtensions
 {
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
-        builder.Services.AddRazorPages();
+        #region ProtectRoute
+        // Add services to the container.
+        builder.Services.AddRazorPages(options =>
+        {
+            // options.Conventions.AuthorizePage("/Contact");
+            // options.Conventions.AuthorizeFolder("/Dashboard");
+            //options.Conventions.AllowAnonymousToPage("/Private/PublicPage");
+            options.Conventions.AllowAnonymousToFolder("/Account/Create");
+        });
 
+        #endregion
+
+        #region Dependency Injections  
+        builder.Services.AddTransient<Pages.Portal.ClientRepository>();
+        builder.Services.AddTransient<Pages.Admin.Clients.ClientRepository>();
+        builder.Services.AddTransient<IdentityScopeRepository>();
+        builder.Services.AddTransient<ApiScopeRepository>();
+        builder.Services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromMinutes(10);
+            options.Cookie.HttpOnly = false;
+            options.Cookie.IsEssential = true;
+        });
+        #endregion
+
+        #region Required Variables
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        #endregion
+
+        #region DbContext DI
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(connectionString, dbOpts => dbOpts.MigrationsAssembly(typeof(Program).Assembly.FullName)));
+        #endregion
 
 
-        builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+
+        #region IdentityServer Configurations
+
+        builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+        {
+            //options.SignIn.RequireConfirmedEmail = true; 
+
+            //User validator
+            options.User.RequireUniqueEmail = false;
+
+            //Password Validator
+            options.Password.RequireDigit = false;
+            options.Password.RequiredLength = 2;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireLowercase = false;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
+            options.Lockout.MaxFailedAccessAttempts = 5;
+        })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
-        builder.Services
+        var isBuilder = builder.Services
             .AddIdentityServer(options =>
             {
                 options.Events.RaiseErrorEvents = true;
@@ -30,11 +79,49 @@ internal static class HostingExtensions
 
                 // see https://docs.duendesoftware.com/identityserver/v6/fundamentals/resources/
                 options.EmitStaticAudienceClaim = true;
-            })
-            .AddInMemoryIdentityResources(Config.IdentityResources)
-            .AddInMemoryApiScopes(Config.ApiScopes)
-            .AddInMemoryClients(Config.Clients)
+            }).AddConfigurationStore(options =>
+            {
+                options.ConfigureDbContext = b =>
+                    b.UseSqlServer(connectionString,
+                        dbOpts => dbOpts.MigrationsAssembly(typeof(Program).Assembly.FullName));
+                options.DefaultSchema = "Sso";
+
+
+
+            }).AddDeveloperSigningCredential()
+                // this is something you will want in production to reduce load on and requests to the DB
+                .AddConfigurationStoreCache()
+                //
+                // this adds the operational data from DB (codes, tokens, consents)
+                .AddOperationalStore(options =>
+                {
+                    options.ConfigureDbContext = b =>
+                        b.UseSqlServer(connectionString,
+                            dbOpts => dbOpts.MigrationsAssembly(typeof(Program).Assembly.FullName));
+                    options.DefaultSchema = "Sso";
+                })
             .AddAspNetIdentity<ApplicationUser>();
+
+        #endregion
+
+
+
+        #region CORS config
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowSpecificOrigins",
+                builder =>
+                {
+                    builder.WithOrigins("https://sapplus.ir:58842",
+                                        "https://sapplus.ir:58843",
+                                        "https://localhost:64024")
+                           .AllowAnyHeader()
+                           .AllowCredentials();
+                });
+        });
+        #endregion
+
+
 
         builder.Services.AddAuthentication()
             .AddGoogle(options =>
@@ -59,7 +146,7 @@ internal static class HostingExtensions
         {
             app.UseDeveloperExceptionPage();
         }
-
+        app.UseSession();
         app.UseStaticFiles();
         app.UseRouting();
         app.UseIdentityServer();
