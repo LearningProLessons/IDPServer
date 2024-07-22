@@ -2,17 +2,17 @@
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
+    // .WriteTo.Console()
     .CreateBootstrapLogger();
 
-Log.Information("Starting up");
+Console.WriteLine("Starting up");
 
 try
 {
     var builder = WebApplication.CreateBuilder(args);
 
     builder.Host.UseSerilog((ctx, lc) => lc
-        .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
+        // .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
         .Enrich.FromLogContext()
         .ReadFrom.Configuration(ctx.Configuration));
 
@@ -24,9 +24,9 @@ try
     // in production you will likely want a different approach.
     if (args.Contains("/seed"))
     {
-        Log.Information("Seeding database...");
+        Console.WriteLine("Seeding database...");
         SeedData.EnsureSeedData(app);
-        Log.Information("Done seeding database. Exiting.");
+        Console.WriteLine("Done seeding database. Exiting.");
         return;
     }
 
@@ -34,10 +34,10 @@ try
 }
 catch (Exception ex) when (ex is not HostAbortedException)
 {
-    Log.Fatal(ex, "Unhandled exception");
+    Console.WriteLine(ex.Message);
 }
 finally
 {
-    Log.Information("Shut down complete");
-    Log.CloseAndFlush();
+    Console.WriteLine("Shut down complete");
+   // Log.CloseAndFlush();
 }

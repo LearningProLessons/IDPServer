@@ -1,26 +1,25 @@
 ﻿using Duende.IdentityServer.Models;
 
-namespace IDPServer
+namespace IDPServer;
+public static class Config
 {
-    public static class Config
-    {
-        public static IEnumerable<IdentityResource> IdentityResources =>
-            new IdentityResource[]
-            {
+    public static IEnumerable<IdentityResource> IdentityResources =>
+        new IdentityResource[]
+        {
                 new IdentityResources.OpenId(),
                 new IdentityResources.Profile(),
-            };
+        };
 
-        public static IEnumerable<ApiScope> ApiScopes =>
-            new ApiScope[]
-            {
+    public static IEnumerable<ApiScope> ApiScopes =>
+        new ApiScope[]
+        {
                 new ApiScope("scope1"),
                 new ApiScope("scope2"),
-            };
+        };
 
-        public static IEnumerable<Client> Clients =>
-            new Client[]
-            {
+    public static IEnumerable<Client> Clients =>
+        new Client[]
+        {
                 // m2m client credentials flow client
                 new Client
                 {
@@ -48,6 +47,5 @@ namespace IDPServer
                     AllowOfflineAccess = true,
                     AllowedScopes = { "openid", "profile", "scope2" }
                 },
-            };
-    }
+        };
 }
