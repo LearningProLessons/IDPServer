@@ -39,5 +39,5 @@ catch (Exception ex) when (ex is not HostAbortedException)
 finally
 {
     Console.WriteLine("Shut down complete");
-   // Log.CloseAndFlush();
+    // Log.CloseAndFlush();
 }

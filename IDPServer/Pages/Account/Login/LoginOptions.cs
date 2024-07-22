@@ -1,7 +1,7 @@
 // Copyright (c) Duende Software. All rights reserved.
 // See LICENSE in the project root for license information.
 
-namespace IDPServer.Pages.Login
+namespace IDPServer.Pages.Account.Login
 {
     public static class LoginOptions
     {

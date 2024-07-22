@@ -3,7 +3,7 @@
 
 using Duende.IdentityServer.Models;
 
-namespace IDPServer.Pages.Error
+namespace IDPServer.Pages.Home.Error
 {
     public class ViewModel
     {

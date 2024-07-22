@@ -5,7 +5,7 @@ using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace IDPServer.Pages.Logout
+namespace IDPServer.Pages.Account.Logout
 {
     [SecurityHeaders]
     [AllowAnonymous]
@@ -29,7 +29,7 @@ namespace IDPServer.Pages.Logout
             {
                 AutomaticRedirectAfterSignOut = LogoutOptions.AutomaticRedirectAfterSignOut,
                 PostLogoutRedirectUri = logout?.PostLogoutRedirectUri,
-                ClientName = String.IsNullOrEmpty(logout?.ClientName) ? logout?.ClientId : logout?.ClientName,
+                ClientName = string.IsNullOrEmpty(logout?.ClientName) ? logout?.ClientId : logout?.ClientName,
                 SignOutIframeUrl = logout?.SignOutIFrameUrl
             };
         }
