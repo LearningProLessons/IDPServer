@@ -120,11 +120,21 @@ public class SeedData
             admin = new ApplicationUser
             {
                 UserName = "admin",
-                Email = "admin@example.com",
+                Email = "admin@sapegah.com",
                 EmailConfirmed = true,
-                FirstName = "Admin",  // Ensure these fields exist in ApplicationUser
-                LastName = "User",
-                // Add other properties as needed
+                FirstName = "Admin",
+                LastName = "Sap",
+                UserTypeId = 3, // user SAP, full access 
+                AccessFailedCount = 0,
+                Birthday = DateTime.Now,
+                CreatedDateTime = DateTime.Now,
+                GenderId = 1,
+                IdentityId = 1,// کاربر حقیقی
+                PhoneNumber = "09120000000",
+                NationalCode = "0000000000",
+                ShopName = "SAP",
+                TwoFactorEnabled = false,
+                NormalizedUserName = "SAP"
             };
 
             var result = await userMgr.CreateAsync(admin, "Sap@admin1234");

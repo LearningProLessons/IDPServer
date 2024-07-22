@@ -14,7 +14,7 @@ public class ApplicationUser : IdentityUser
     public int? ShopCategoryId { get; set; }
     public int? ShopActivityId { get; set; }
     public int? GenderId { get; set; }
-    public string? IdentityId { get; set; }
+    public int? IdentityId { get; set; }
     public string? NationalCode { get; set; }
     public string? ShopName { get; set; }
     public DateTime? Birthday { get; set; }

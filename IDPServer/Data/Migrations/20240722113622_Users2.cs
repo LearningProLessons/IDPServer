@@ -41,7 +41,7 @@ namespace IDPServer.Data.Migrations
                     ShopCategoryId = table.Column<int>(type: "int", nullable: true),
                     ShopActivityId = table.Column<int>(type: "int", nullable: true),
                     GenderId = table.Column<int>(type: "int", nullable: true),
-                    IdentityId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IdentityId = table.Column<int>(type: "int", nullable: true),
                     NationalCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ShopName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Birthday = table.Column<DateTime>(type: "datetime2", nullable: true),

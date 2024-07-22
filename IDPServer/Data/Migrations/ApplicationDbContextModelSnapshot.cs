@@ -63,8 +63,8 @@ namespace IDPServer.Data.Migrations
                     b.Property<int?>("GenderId")
                         .HasColumnType("int");
 
-                    b.Property<string>("IdentityId")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("IdentityId")
+                        .HasColumnType("int");
 
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");

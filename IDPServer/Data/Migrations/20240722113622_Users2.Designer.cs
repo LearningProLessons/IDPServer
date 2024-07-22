@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IDPServer.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240722112648_Users2")]
+    [Migration("20240722113622_Users2")]
     partial class Users2
     {
         /// <inheritdoc />
@@ -66,8 +66,8 @@ namespace IDPServer.Data.Migrations
                     b.Property<int?>("GenderId")
                         .HasColumnType("int");
 
-                    b.Property<string>("IdentityId")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("IdentityId")
+                        .HasColumnType("int");
 
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
