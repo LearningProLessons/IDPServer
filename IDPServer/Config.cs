@@ -1,60 +1,83 @@
 ﻿using Duende.IdentityServer.Models;
+using System.Security.Cryptography;
 
 namespace IDPServer;
+
 public static class Config
 {
     public static IEnumerable<IdentityResource> IdentityResources =>
         [
-        new IdentityResources.OpenId(),
-        new IdentityResources.Profile(),
+            new IdentityResources.OpenId(),
+            new IdentityResources.Profile(),
         ];
 
     public static IEnumerable<ApiScope> ApiScopes =>
         [
-        new ApiScope("scope1"),
-        new ApiScope("scope2"),
+            new ApiScope("scope1"),
+            new ApiScope("scope2"),
         ];
 
     public static IEnumerable<Client> Clients =>
         [
-        // m2m client credentials flow client
-        //new Client
-        //{
-        //    ClientId = "m2m.client",
-        //    ClientName = "Client Credentials Client",
+            // New Client: SapPlus.CompanyUI
+            new Client
+            {
+                ClientId = "SapPlus.CompanyUI",
+                ClientSecrets = { new Secret(GenerateSecret()) }, // Ensure to replace with the actual secret
+                AllowedGrantTypes = GrantTypes.Code,
+                RequirePkce = true,
+                AllowOfflineAccess = true,
+                RedirectUris = { "https://localhost:64024/signin-oidc" },
+                FrontChannelLogoutUri = "https://localhost:64024/signout-oidc",
+                PostLogoutRedirectUris = { "https://localhost:64024/signout-callback-oidc" },
+                AllowedScopes = { "openid", "profile" },
+                AccessTokenLifetime = 3600, // 1 hour
+                IdentityTokenLifetime = 300, // 5 minutes
+                AbsoluteRefreshTokenLifetime = 2592000, // 30 days
+                SlidingRefreshTokenLifetime = 1296000, // 15 days
+                RequireClientSecret = true,
+                ClientName = "SapPlus.CompanyUI",
+                RequireConsent = false,
+                AllowRememberConsent = true,
+                AlwaysIncludeUserClaimsInIdToken = false,
+                AllowAccessTokensViaBrowser = false,
+                Enabled = true
+            },
 
-        //    AllowedGrantTypes = GrantTypes.ClientCredentials,
-        //    ClientSecrets = { new Secret("511536EF-F270-4058-80CA-1C89C192F69A".Sha256()) },
+            // New Client: SapPlus.CompanyUI.Publish
+            new Client
+            {
+                ClientId = "SapPlus.CompanyUI.Publish",
+                ClientSecrets = { new Secret(GenerateSecret()) }, // Ensure to replace with the actual secret
+                AllowedGrantTypes = GrantTypes.Code,
+                RequirePkce = true,
+                AllowOfflineAccess = true,
+                RedirectUris = { "https://sapplus.ir:58842/signin-oidc" },
+                FrontChannelLogoutUri = "https://sapplus.ir:58842/signout-oidc",
+                PostLogoutRedirectUris = { "https://sapplus.ir:58842/signout-callback-oidc" },
+                AllowedScopes = { "openid", "profile" },
+                AccessTokenLifetime = 3600, // 1 hour
+                IdentityTokenLifetime = 300, // 5 minutes
+                AbsoluteRefreshTokenLifetime = 2592000, // 30 days
+                SlidingRefreshTokenLifetime = 1296000, // 15 days
+                RequireClientSecret = true,
+                ClientName = "SapPlus.CompanyUI.Publish",
+                RequireConsent = false,
+                AllowRememberConsent = true,
+                AlwaysIncludeUserClaimsInIdToken = false,
+                AllowAccessTokensViaBrowser = false,
+                Enabled = true
+            }
+        ];
 
-        //    AllowedScopes = { "scope1" },
 
-        //    // Token lifetimes
-        //    AccessTokenLifetime = 3600, // 1 hour
-        //    IdentityTokenLifetime = 300, // 5 minutes
-        //    AbsoluteRefreshTokenLifetime = 2592000, // 30 days
-        //    SlidingRefreshTokenLifetime = 1296000 // 15 days
-        //},
-
-        // interactive client using code flow + pkce
-        new Client
+    private static string GenerateSecret()
+    {
+        using (var rng = new RNGCryptoServiceProvider())
         {
-            ClientId = "interactive",
-            ClientSecrets = { new Secret("49C1A7E1-0C79-4A89-A3D6-A37998FB86B0".Sha256()) },
-
-            AllowedGrantTypes = GrantTypes.Code,
-
-            RedirectUris = { "https://localhost:44300/signin-oidc" },
-            FrontChannelLogoutUri = "https://localhost:44300/signout-oidc",
-            PostLogoutRedirectUris = { "https://localhost:44300/signout-callback-oidc" },
-
-            AllowOfflineAccess = true,
-            AllowedScopes = { "openid", "profile", "scope2" },
-
-            // Token lifetimes
-            AccessTokenLifetime = 3600, // 1 hour
-            IdentityTokenLifetime = 300, // 5 minutes
-            AbsoluteRefreshTokenLifetime = 2592000, // 30 days
-            SlidingRefreshTokenLifetime = 1296000 // 15 days
-        },
-    ];
+            var bytes = new byte[32];
+            rng.GetBytes(bytes);
+            return Convert.ToBase64String(bytes);
+        }
+    }
 }
