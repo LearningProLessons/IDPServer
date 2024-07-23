@@ -108,23 +108,22 @@ internal static class HostingExtensions
     .AddInMemoryClients(Config.Clients)
     .AddAspNetIdentity<ApplicationUser>();
 
-        
+
         #endregion
 
 
 
         #region CORS config
+        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()!;
+
         builder.Services.AddCors(options =>
         {
-            options.AddPolicy("AllowSpecificOrigins",
-                builder =>
-                {
-                    builder.WithOrigins("https://sapplus.ir:58842",
-                                        "https://sapplus.ir:58843",
-                                        "https://localhost:64024")
-                           .AllowAnyHeader()
-                           .AllowCredentials();
-                });
+            options.AddPolicy("AllowSpecificOrigins", policyBuilder =>
+            {
+                policyBuilder.WithOrigins(allowedOrigins)
+                             .AllowAnyHeader()
+                             .AllowCredentials();
+            });
         });
         #endregion
 
