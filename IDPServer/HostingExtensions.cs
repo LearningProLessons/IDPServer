@@ -131,12 +131,6 @@ internal static class HostingExtensions
 
 
         builder.Services.AddAuthentication()
-             .AddJwtBearer("Bearer", options =>
-             {
-                 options.Authority = "https://localhost:5001"; // Your IDP URL
-                 options.RequireHttpsMetadata = false; // Set to true in production
-                 options.Audience = "api1"; // Match the audience with the API resource
-             })
             .AddGoogle(options =>
             {
                 options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;

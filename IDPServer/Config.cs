@@ -120,10 +120,10 @@ public static class Config
                 }    ,
 
 
-             // TODO: remove this client after merge with sapplus
-             // New Client: Sample.UI
-                new Client
-                {
+                // TODO: remove this client after merge with sapplus
+                // New Client: Sample.UI
+               new Client
+               {
                     ClientId = "Sample.UI",
                     ClientSecrets = { new Secret("K8T1L7J9V0D3R+4W6Fz5X2Q8B1N7P3C4G0A9J7R8H6=".Sha256()) },
                     AllowedGrantTypes = GrantTypes.Code,
@@ -131,7 +131,7 @@ public static class Config
                     AllowOfflineAccess = true,
                     RedirectUris = { "https://localhost:7076/signin-oidc" },
                     FrontChannelLogoutUri = "https://localhost:7076/signout-oidc",
-                    PostLogoutRedirectUris = { "https://localhost:7076/signout-callback-oidc" },
+                    PostLogoutRedirectUris = { "https://localhost:7076/signout-callback" }, // This should be set correctly
                     AllowedScopes = { "openid", "profile", "scope1" },
                     AccessTokenLifetime = 3600, // 1 hour
                     IdentityTokenLifetime = 300, // 5 minutes
@@ -144,9 +144,6 @@ public static class Config
                     AlwaysIncludeUserClaimsInIdToken = false,
                     AllowAccessTokensViaBrowser = false,
                     Enabled = true
-                }
+               }
     ];
-
-
-    
 }
