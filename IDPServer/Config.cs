@@ -67,8 +67,58 @@ public static class Config
                 AlwaysIncludeUserClaimsInIdToken = false,
                 AllowAccessTokensViaBrowser = false,
                 Enabled = true
-            }
-        ];
+            } ,
+
+             // New Client: SapPlus.CompanyAPI
+                new Client
+                {
+                    ClientId = "SapPlus.CompanyAPI",
+                    ClientSecrets = { new Secret(GenerateSecret()) },
+                    AllowedGrantTypes = GrantTypes.Code,
+                    RequirePkce = true,
+                    AllowOfflineAccess = true,
+                    RedirectUris = { "https://localhost:58862/signin-oidc", "https://sapplus.ir:58843/signin-oidc" },
+                    FrontChannelLogoutUri = "https://localhost:58862/signout-oidc",
+                    PostLogoutRedirectUris = { "https://localhost:58862/signout-callback-oidc", "https://sapplus.ir:58843/signout-callback-oidc" },
+                    AllowedScopes = { "openid", "profile" },
+                    AccessTokenLifetime = 3600, // 1 hour
+                    IdentityTokenLifetime = 300, // 5 minutes
+                    AbsoluteRefreshTokenLifetime = 2592000, // 30 days
+                    SlidingRefreshTokenLifetime = 1296000, // 15 days
+                    RequireClientSecret = true,
+                    ClientName = "SapPlus.CompanyAPI",
+                    RequireConsent = false,
+                    AllowRememberConsent = true,
+                    AlwaysIncludeUserClaimsInIdToken = false,
+                    AllowAccessTokensViaBrowser = false,
+                    Enabled = true
+                },
+
+                // New Client: SapPlus.CompanyAPIPublish
+                new Client
+                {
+                    ClientId = "SapPlus.CompanyAPIPublish",
+                    ClientSecrets = { new Secret(GenerateSecret()) },
+                    AllowedGrantTypes = GrantTypes.Code,
+                    RequirePkce = true,
+                    AllowOfflineAccess = true,
+                    RedirectUris = { "https://sapplus.ir:58843/signin-oidc" },
+                    FrontChannelLogoutUri = "https://sapplus.ir:58843/signout-oidc",
+                    PostLogoutRedirectUris = { "https://sapplus.ir:58843/signout-callback-oidc" },
+                    AllowedScopes = { "openid", "profile", "scope2" },
+                    AccessTokenLifetime = 3600, // 1 hour
+                    IdentityTokenLifetime = 300, // 5 minutes
+                    AbsoluteRefreshTokenLifetime = 2592000, // 30 days
+                    SlidingRefreshTokenLifetime = 1296000, // 15 days
+                    RequireClientSecret = true,
+                    ClientName = "SapPlus.CompanyAPIPublish",
+                    RequireConsent = false,
+                    AllowRememberConsent = true,
+                    AlwaysIncludeUserClaimsInIdToken = false,
+                    AllowAccessTokensViaBrowser = false,
+                    Enabled = true
+                }
+    ];
 
 
     private static string GenerateSecret()
