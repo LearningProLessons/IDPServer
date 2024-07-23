@@ -90,13 +90,7 @@ internal static class HostingExtensions
              b.UseSqlServer(connectionString,
                  dbOpts => dbOpts.MigrationsAssembly(typeof(Program).Assembly.FullName));
          options.DefaultSchema = "Sso";
-     })
-     .AddDeveloperSigningCredential()
-     // this is something you will want in production to reduce load on and requests to the DB
-     .AddConfigurationStoreCache()
-     //
-     // this adds the operational data from DB (codes, tokens, consents)
-     .AddOperationalStore(options =>
+     }).AddOperationalStore(options =>
      {
          options.ConfigureDbContext = b =>
              b.UseSqlServer(connectionString,
@@ -105,7 +99,14 @@ internal static class HostingExtensions
 
          // Set token expiration times in operational store options
          options.TokenCleanupInterval = 3600; // Cleanup interval in seconds
-     }).AddInMemoryClients(Config.Clients).AddAspNetIdentity<ApplicationUser>();
+     })
+     .AddDeveloperSigningCredential()
+     // this is something you will want in production to reduce load on and requests to the DB
+     .AddConfigurationStoreCache()
+     //
+     // this adds the operational data from DB (codes, tokens, consents)
+    .AddInMemoryClients(Config.Clients)
+    .AddAspNetIdentity<ApplicationUser>();
 
         
         #endregion
@@ -130,6 +131,12 @@ internal static class HostingExtensions
 
 
         builder.Services.AddAuthentication()
+             .AddJwtBearer("Bearer", options =>
+             {
+                 options.Authority = "https://localhost:5001"; // Your IDP URL
+                 options.RequireHttpsMetadata = false; // Set to true in production
+                 options.Audience = "api1"; // Match the audience with the API resource
+             })
             .AddGoogle(options =>
             {
                 options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
