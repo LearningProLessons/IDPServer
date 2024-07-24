@@ -13,44 +13,79 @@ function Write-Log {
     Write-Host $Message -ForegroundColor $Color
 }
 
+# Function to show a loading bar
+function Show-LoadingBar {
+    param (
+        [string]$Message,
+        [int]$TotalSteps
+    )
+    
+    $progress = 0
+    $barWidth = 50
+
+    Write-Host "$Message..." -NoNewline
+    Write-Host -NoNewline "["
+    while ($progress -le $TotalSteps) {
+        $percentComplete = ($progress / $TotalSteps) * 100
+        $numHashes = [math]::Round(($percentComplete / 100) * $barWidth)
+        $numSpaces = $barWidth - $numHashes
+        $bar = "#" * $numHashes + " " * $numSpaces
+        Write-Host -NoNewline "`r[$bar] $([math]::Round($percentComplete, 2))% Complete"
+        Start-Sleep -Milliseconds 200
+        $progress++
+    }
+    Write-Host "`r[$bar] 100% Complete" -ForegroundColor Green
+}
+
 # Remove existing migrations if the directory exists
 Write-Log "Removing existing migrations if they exist..." -Color Cyan
 if (Test-Path $migrationsPath) {
+    Show-LoadingBar "Removing existing migrations" -TotalSteps 10
     Remove-Item -Recurse -Force $migrationsPath
-    Write-Log "Existing migrations removed." -Color Green
+    Write-Host "`rDone removing existing migrations." -ForegroundColor Green
 } else {
     Write-Log "Migrations directory does not exist, nothing to remove." -Color Yellow
 }
 
 # Add new migrations for each DbContext
-Write-Log "Adding new migration for ApplicationDbContext..." -Color Cyan
-dotnet ef migrations add Users2 -c ApplicationDbContext -o Data/Migrations
+function Add-Migration {
+    param (
+        [string]$DbContext,
+        [string]$MigrationName
+    )
+    Write-Log "Adding new migration for $DbContext..." -Color Cyan
+    Show-LoadingBar "Adding migration $MigrationName for $DbContext" -TotalSteps 10
+    dotnet ef migrations add $MigrationName -c $DbContext -o Data/Migrations
+    Write-Host "`rDone adding migration $MigrationName for $DbContext." -ForegroundColor Green
+}
 
-Write-Log "Adding new migration for PersistedGrantDbContext..." -Color Cyan
-dotnet ef migrations add PersistedGrantMigration -c PersistedGrantDbContext -o Data/Migrations
-
-Write-Log "Adding new migration for ConfigurationDbContext..." -Color Cyan
-dotnet ef migrations add ConfigurationMigration -c ConfigurationDbContext -o Data/Migrations
+Add-Migration -DbContext "ApplicationDbContext" -MigrationName "Users2"
+Add-Migration -DbContext "PersistedGrantDbContext" -MigrationName "PersistedGrantMigration"
+Add-Migration -DbContext "ConfigurationDbContext" -MigrationName "ConfigurationMigration"
 
 # Update the database for each DbContext
-Write-Log "Updating the database for ApplicationDbContext..." -Color Cyan
-dotnet ef database update -c ApplicationDbContext 
-Write-Log "Database updated for ApplicationDbContext." -Color Green
+function Update-Database {
+    param (
+        [string]$DbContext
+    )
+    Write-Log "Updating the database for $DbContext..." -Color Cyan
+    Show-LoadingBar "Updating database for $DbContext" -TotalSteps 10
+    dotnet ef database update -c $DbContext
+    Write-Host "`rDone updating database for $DbContext." -ForegroundColor Green
+}
 
-Write-Log "Updating the database for PersistedGrantDbContext..." -Color Cyan
-dotnet ef database update -c PersistedGrantDbContext 
-Write-Log "Database updated for PersistedGrantDbContext." -Color Green
-
-Write-Log "Updating the database for ConfigurationDbContext..." -Color Cyan
-dotnet ef database update -c ConfigurationDbContext 
-Write-Log "Database updated for ConfigurationDbContext." -Color Green
+Update-Database -DbContext "ApplicationDbContext"
+Update-Database -DbContext "PersistedGrantDbContext"
+Update-Database -DbContext "ConfigurationDbContext"
 
 # Build the project
 Write-Log "Building the project..." -Color Cyan
+Show-LoadingBar "Building project" -TotalSteps 10
 dotnet build
-Write-Log "Project built successfully." -Color Green
+Write-Host "`rDone building project." -ForegroundColor Green
 
 # Run the seed data script
 Write-Log "Running the seed data script..." -Color Cyan
+Show-LoadingBar "Running seed data script" -TotalSteps 10
 dotnet run /seed
-Write-Log "Seed data script executed." -Color Green
+Write-Host "`rDone running seed data script." -ForegroundColor Green
