@@ -106,6 +106,8 @@ internal static class HostingExtensions
      //
      // this adds the operational data from DB (codes, tokens, consents)
     .AddInMemoryClients(Config.Clients)
+    .AddInMemoryApiScopes(Config.ApiScopes)
+    .AddInMemoryApiResources(Config.ApiResources)
     .AddAspNetIdentity<ApplicationUser>();
 
 
