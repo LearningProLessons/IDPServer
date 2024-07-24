@@ -37,6 +37,17 @@ function Show-LoadingBar {
     Write-Host "`r[$bar] 100% Complete" -ForegroundColor Green
 }
 
+# Function to run dotnet commands and suppress specific warnings
+function Run-DotnetCommand {
+    param (
+        [string]$Command
+    )
+    $output = Invoke-Expression $Command 2>&1
+    # Filter out the specific warning message
+    $filteredOutput = $output | Where-Object { $_ -notmatch "Entity Framework tools version '.*' is older than that of the runtime" }
+    Write-Host $filteredOutput
+}
+
 # Remove existing migrations if the directory exists
 Write-Log "Removing existing migrations if they exist..." -Color Cyan
 if (Test-Path $migrationsPath) {
@@ -55,7 +66,7 @@ function Add-Migration {
     )
     Write-Log "Adding new migration for $DbContext..." -Color Cyan
     Show-LoadingBar "Adding migration $MigrationName for $DbContext" -TotalSteps 10
-    dotnet ef migrations add $MigrationName -c $DbContext -o Data/Migrations
+    Run-DotnetCommand "dotnet ef migrations add $MigrationName -c $DbContext -o Data/Migrations"
     Write-Host "`rDone adding migration $MigrationName for $DbContext." -ForegroundColor Green
 }
 
@@ -70,7 +81,7 @@ function Update-Database {
     )
     Write-Log "Updating the database for $DbContext..." -Color Cyan
     Show-LoadingBar "Updating database for $DbContext" -TotalSteps 10
-    dotnet ef database update -c $DbContext
+    Run-DotnetCommand "dotnet ef database update -c $DbContext"
     Write-Host "`rDone updating database for $DbContext." -ForegroundColor Green
 }
 
@@ -81,11 +92,11 @@ Update-Database -DbContext "ConfigurationDbContext"
 # Build the project
 Write-Log "Building the project..." -Color Cyan
 Show-LoadingBar "Building project" -TotalSteps 10
-dotnet build
+Run-DotnetCommand "dotnet build"
 Write-Host "`rDone building project." -ForegroundColor Green
 
 # Run the seed data script
 Write-Log "Running the seed data script..." -Color Cyan
 Show-LoadingBar "Running seed data script" -TotalSteps 10
-dotnet run /seed
+Run-DotnetCommand "dotnet run /seed"
 Write-Host "`rDone running seed data script." -ForegroundColor Green
