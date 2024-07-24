@@ -18,7 +18,18 @@ public static class Config
         ];
 
     public static IEnumerable<Client> Clients =>
-        [
+    [
+        // New Client: Sample.API
+        // m2m client credentials flow client
+        new Client
+        {
+            ClientId = "Sample.API",
+            ClientName = "Sample Client API",
+            AllowedGrantTypes = GrantTypes.ClientCredentials,
+            ClientSecrets = { new Secret("511536EF-F270-4058-80CA-1C89C192F69A".Sha256()) },
+            AllowedScopes = { "scope1" }
+        },
+
          // TODO: remove this client after merge with sapplus
          // New Client: Sample.UI
          new Client
