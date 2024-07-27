@@ -6,26 +6,16 @@ namespace IDPServer;
 public static class Config
 {
     public static IEnumerable<IdentityResource> IdentityResources =>
-        [
-            new IdentityResources.OpenId(),
-            new IdentityResources.Profile(),
-        ];
+    [
+        new IdentityResources.OpenId(),
+        new IdentityResources.Profile(),
+    ];
 
     public static IEnumerable<ApiScope> ApiScopes =>
     [
         new ApiScope("scope_sapplus"),
     ];
 
-    //public static IEnumerable<ApiResource> ApiResources =>
-    //[
-    //    new("APIScope", "Sample API") {
-    //        Scopes = { "APIScope" },
-    //        //AllowedAccessTokenSigningAlgorithms = { SecurityAlgorithms.RsaSsaPssSha256 } ,
-    //        //Description = "This will access to API project to be verified in IDP"    ,
-    //        //Enabled = true,
-    //        //ShowInDiscoveryDocument = true,
-    //    }
-    //];
     public static IEnumerable<Client> Clients =>
     [
          new Client
