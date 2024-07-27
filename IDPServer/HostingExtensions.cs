@@ -69,46 +69,46 @@ internal static class HostingExtensions
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
-      builder.Services
-     .AddIdentityServer(options =>
-     {
-         options.ServerSideSessions.UserDisplayNameClaimType = "name";
+        builder.Services
+       .AddIdentityServer(options =>
+       {
+           options.ServerSideSessions.UserDisplayNameClaimType = "name";
 
-         options.Events.RaiseErrorEvents = true;
-         options.Events.RaiseInformationEvents = true;
-         options.Events.RaiseFailureEvents = true;
-         options.Events.RaiseSuccessEvents = true;
+           options.Events.RaiseErrorEvents = true;
+           options.Events.RaiseInformationEvents = true;
+           options.Events.RaiseFailureEvents = true;
+           options.Events.RaiseSuccessEvents = true;
 
-         // see https://docs.duendesoftware.com/identityserver/v6/fundamentals/resources/
-         options.EmitStaticAudienceClaim = true;
+           // see https://docs.duendesoftware.com/identityserver/v6/fundamentals/resources/
+           options.EmitStaticAudienceClaim = true;
 
-     })
-     .AddServerSideSessions()
-     .AddConfigurationStore(options =>
-     {
-         options.ConfigureDbContext = b =>
-             b.UseSqlServer(connectionString,
-                 dbOpts => dbOpts.MigrationsAssembly(typeof(Program).Assembly.FullName));
-         options.DefaultSchema = "Sso";
-     }).AddOperationalStore(options =>
-     {
-         options.ConfigureDbContext = b =>
-             b.UseSqlServer(connectionString,
-                 dbOpts => dbOpts.MigrationsAssembly(typeof(Program).Assembly.FullName));
-         options.DefaultSchema = "Sso";
+       })
+       .AddServerSideSessions()
+       .AddConfigurationStore(options =>
+       {
+           options.ConfigureDbContext = b =>
+               b.UseSqlServer(connectionString,
+                   dbOpts => dbOpts.MigrationsAssembly(typeof(Program).Assembly.FullName));
+           options.DefaultSchema = "Sso";
+       }).AddOperationalStore(options =>
+       {
+           options.ConfigureDbContext = b =>
+               b.UseSqlServer(connectionString,
+                   dbOpts => dbOpts.MigrationsAssembly(typeof(Program).Assembly.FullName));
+           options.DefaultSchema = "Sso";
 
-         // Set token expiration times in operational store options
-         options.TokenCleanupInterval = 3600; // Cleanup interval in seconds
-     })
-     .AddDeveloperSigningCredential()
-     // this is something you will want in production to reduce load on and requests to the DB
-     .AddConfigurationStoreCache()
-     //
-     // this adds the operational data from DB (codes, tokens, consents)
-    .AddInMemoryClients(Config.Clients)
-    .AddInMemoryApiScopes(Config.ApiScopes)
-    .AddInMemoryApiResources(Config.ApiResources)
-    .AddAspNetIdentity<ApplicationUser>();
+           // Set token expiration times in operational store options
+           options.TokenCleanupInterval = 3600; // Cleanup interval in seconds
+       })
+       .AddDeveloperSigningCredential()
+       // this is something you will want in production to reduce load on and requests to the DB
+       .AddConfigurationStoreCache()
+      //
+      // this adds the operational data from DB (codes, tokens, consents)
+      .AddInMemoryClients(Config.Clients)
+       //.AddInMemoryApiScopes(Config.ApiScopes)
+       //.AddInMemoryApiResources(Config.ApiResources)
+      .AddAspNetIdentity<ApplicationUser>();
 
 
         #endregion

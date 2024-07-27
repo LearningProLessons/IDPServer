@@ -74,22 +74,21 @@ public class SeedData
         else
         {
             Log.Debug("ApiScopes already populated");
-        }     
-        
-        
-        if (!await context.ApiResources.AnyAsync())
-        {
-            Log.Debug("ApiResources being populated");
-            foreach (var scope in Config.ApiResources.ToList())
-            {
-                context.ApiResources.Add(scope.ToEntity());
-            }
-            await context.SaveChangesAsync();
         }
-        else
-        {
-            Log.Debug("ApiResources already populated");
-        }
+
+        //if (!await context.ApiResources.AnyAsync())
+        //{
+        //    Log.Debug("ApiResources being populated");
+        //    foreach (var scope in Config.ApiResources.ToList())
+        //    {
+        //        context.ApiResources.Add(scope.ToEntity());
+        //    }
+        //    await context.SaveChangesAsync();
+        //}
+        //else
+        //{
+        //    Log.Debug("ApiResources already populated");
+        //}
 
         if (!await context.IdentityProviders.AnyAsync())
         {
