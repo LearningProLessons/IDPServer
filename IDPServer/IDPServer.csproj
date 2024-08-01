@@ -32,4 +32,12 @@
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 	</ItemGroup>
+
+	<ItemGroup>
+	  <EditorConfigFiles Remove="C:\Users\60186\source\repos\IDPServer\IDPServer\.editorconfig" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="C:\Users\60186\source\repos\IDPServer\IDPServer\.editorconfig" />
+	</ItemGroup>
 </Project>
