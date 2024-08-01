@@ -1,133 +1,174 @@
-Certainly! Here’s a `README.md` file for your project that includes instructions for building and running your .NET application using Docker.
+# IDPServer Deployment Guide
 
----
+## Overview
 
-# IDPServer
-
-## Introduction
-
-IDPServer is a .NET application designed for identity and access management. This document provides instructions on how to run the application using Docker.
+This guide explains how to set up and run the `IDPServer` application using Docker. It includes instructions for both a simple Docker setup and a more advanced failover clustering setup with Nginx.
 
 ## Prerequisites
 
-- Docker: Ensure you have Docker installed on your machine. You can download and install Docker from [Docker's official website](https://www.docker.com/get-started).
+- **Docker**: Ensure Docker is installed and running on your machine.
+- **Docker Compose**: Install Docker Compose for orchestrating multi-container applications.
 
-## Getting Started
+## Folder Structure
 
-Follow these steps to build and run the IDPServer application in a Docker container.
+Here's an overview of the folder structure:
 
-### 1. Clone the Repository
-
-If you haven't already, clone the repository to your local machine:
-
-```bash
-git clone https://github.com/yourusername/IDPServer.git
-cd IDPServer
+```
+IDPServer
+├── docker-compose.yml       # Docker Compose configuration
+├── nginx.conf               # Nginx configuration for load balancing
+├── IDPServer                # .NET application directory
+│   ├── Dockerfile           # Dockerfile for building .NET app image
+│   ├── appsettings.json     # Application settings
+│   ├── Config.cs            # Configuration class
+│   ├── Data                 # Data-related classes
+│   ├── HostingExtensions.cs # Hosting extensions
+│   ├── IDPServer.csproj     # .NET project file
+│   ├── Models               # Model classes
+│   ├── Pages                # Razor pages
+│   ├── Program.cs           # Application entry point
+│   ├── Properties           # Project properties
+│   ├── README.md            # This file
+│   ├── SeedData.cs          # Seed data for initialization
+│   ├── setup.ps1            # Setup script (optional)
+│   ├── tempkey.jwk          # Temporary key for JWT (if applicable)
+│   └── wwwroot              # Static files
+└── IDPServer.sln            # Solution file
 ```
 
-### 2. Build the Docker Image
+## Simple Docker Setup
 
-Navigate to the root directory of the project (where the `Dockerfile` is located) and build the Docker image using the following command:
+### Building and Running the Application
 
-```bash
-docker build -t idpserver .
-```
+1. **Navigate to the Project Directory**
 
-- `-t idpserver` tags the image with the name `idpserver`.
+   Change to the directory where the `Dockerfile` is located:
 
-### 3. Run the Docker Container
+   ```bash
+   cd IDPServer
+   ```
 
-Once the image is built, you can run the application in a Docker container. Use the following command:
+2. **Build the Docker Image**
 
-```bash
-docker run -d -p 8080:80 --name idpserver-container idpserver
-```
+   Build the Docker image for the .NET application:
 
-- `-d` runs the container in detached mode.
-- `-p 8080:80` maps port 80 in the container to port 8080 on your host machine.
-- `--name idpserver-container` names the container `idpserver-container`.
+   ```bash
+   docker build -t my-sso:v1.0.0 .
+   ```
 
-### 4. Access the Application
+3. **Run the Docker Container**
 
-Open a web browser and navigate to `http://localhost:8080`. You should see the IDPServer application running.
+   Run a container from the built image:
 
-### 5. Stop and Remove the Docker Container
+   ```bash
+   docker run -d -p 8080:80 --name my-sso my-sso:v1.0.0
+   ```
 
-To stop the running container, use the following command:
+   Access the application by navigating to `http://localhost:8080`.
 
-```bash
-docker stop idpserver-container
-```
+## Failover Clustering with Nginx
 
-To remove the container after stopping it, use:
+### Overview
 
-```bash
-docker rm idpserver-container
-```
+In this setup, Nginx acts as a reverse proxy and load balancer, distributing traffic across multiple instances of the .NET application to ensure high availability.
 
-### 6. (Optional) Using Docker Compose
+### Setting Up
 
-If your application requires additional services (e.g., databases), you can use Docker Compose. Create a `docker-compose.yml` file with the necessary configurations. Here is a sample `docker-compose.yml`:
+1. **Navigate to the Root Directory**
 
-```yaml
-version: '3.8'
+   Change to the directory where the `docker-compose.yml` and `nginx.conf` files are located:
 
-services:
-  idpserver:
-    image: idpserver
-    build:
-      context: .
-    ports:
-      - "8080:80"
-    networks:
-      - idpnet
+   ```bash
+   cd IDPServer
+   ```
 
-  # Example of adding a database service
-  # Uncomment and configure as needed
-  # db:
-  #   image: postgres:latest
-  #   environment:
-  #     POSTGRES_USER: user
-  #     POSTGRES_PASSWORD: password
-  #     POSTGRES_DB: idpdb
-  #   networks:
-  #     - idpnet
-  #   volumes:
-  #     - dbdata:/var/lib/postgresql/data
+2. **Start the Cluster**
 
-networks:
-  idpnet:
+   Use Docker Compose to start the application and Nginx services:
 
-# Uncomment and configure as needed
-# volumes:
-#   dbdata:
-```
+   ```bash
+   docker-compose up -d
+   ```
 
-To build and start all services defined in `docker-compose.yml`, use:
+   This command will build and start two instances of the .NET application and an Nginx container configured for load balancing.
 
-```bash
-docker-compose up --build
-```
+3. **Access the Application**
 
-To stop and remove all containers defined in `docker-compose.yml`, use:
+   Open a web browser and navigate to `http://localhost:8080`. Nginx will distribute the requests between the available application instances.
 
-```bash
-docker-compose down
-```
+### Configuration Details
+
+- **Nginx Configuration (`nginx.conf`)**:
+
+  ```nginx
+  events {}
+
+  http {
+      upstream backend {
+          server app1:80;
+          server app2:80;
+      }
+
+      server {
+          listen 80;
+
+          location / {
+              proxy_pass http://backend;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+          }
+      }
+  }
+  ```
+
+- **Docker Compose Configuration (`docker-compose.yml`)**:
+
+  ```yaml
+  version: '3.8'
+
+  services:
+    app1:
+      image: my-sso:v1.0.0
+      container_name: app1
+      restart: always
+      networks:
+        - mynetwork
+
+    app2:
+      image: my-sso:v1.0.0
+      container_name: app2
+      restart: always
+      networks:
+        - mynetwork
+
+    nginx:
+      image: nginx:latest
+      container_name: nginx
+      ports:
+        - "8080:80"
+      volumes:
+        - ./nginx.conf:/etc/nginx/nginx.conf
+      networks:
+        - mynetwork
+
+  networks:
+    mynetwork:
+      driver: bridge
+  ```
+
+### Notes
+
+- **Scaling**: To scale the number of application instances, adjust the `docker-compose.yml` file and rerun `docker-compose up -d`.
+- **Health Checks**: Implement health checks to monitor application health.
+- **Security**: Consider securing the application and Nginx setup with HTTPS and appropriate firewall rules.
 
 ## Troubleshooting
 
-- **Application not accessible**: Ensure Docker is running and the port mapping (`-p 8080:80`) is correct.
-- **Build errors**: Check the Docker build output for errors and ensure all required files are included.
+- **Check Logs**: Use `docker logs <container_name>` to view logs if the containers are not behaving as expected.
+- **Network Issues**: Ensure that all containers are on the same network and can communicate with each other.
 
-## Contributing
+For further customization or advanced configurations, refer to the Docker and Nginx documentation.
 
-Feel free to contribute to the project by opening issues or submitting pull requests. For more details, check the contributing guidelines in the repository.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-Feel free to adjust any sections to better fit your project’s specifics or your preferred setup.
+ 
