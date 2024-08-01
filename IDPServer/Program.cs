@@ -1,4 +1,5 @@
 ﻿using IDPServer;
+using IDPServer.Configs;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -15,6 +16,14 @@ try
         // .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
         .Enrich.FromLogContext()
         .ReadFrom.Configuration(ctx.Configuration));
+
+    
+    // Bind configuration to AppSettings model
+    var appSettings = new AppSettings();
+    builder.Configuration.Bind(appSettings);
+
+    // Add AppSettings to the DI container
+    builder.Services.AddSingleton(appSettings);
 
     var app = builder
         .ConfigureServices()
