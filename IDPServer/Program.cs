@@ -17,10 +17,10 @@ try
         .Enrich.FromLogContext()
         .ReadFrom.Configuration(ctx.Configuration));
 
-    builder.WebHost.ConfigureKestrel(serverOptions =>
-    {
-        serverOptions.ListenAnyIP(5000); // Listen on all IPs on port 5000
-    });
+    //builder.WebHost.ConfigureKestrel(serverOptions =>
+    //{
+    //    serverOptions.ListenAnyIP(5001); // Listen on all IPs on port 5000
+    //});
 
     // Bind configuration to AppSettings model
     var appSettings = new AppSettings();

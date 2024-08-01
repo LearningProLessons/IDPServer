@@ -51,14 +51,16 @@ internal static class HostingExtensions
             app.UseDeveloperExceptionPage();
         }
         app.UseSession();
+
+        app.UseHttpsRedirection();
         app.UseStaticFiles();
         app.UseRouting();
         app.UseIdentityServer();
         app.UseAuthorization();
 
-        app.MapRazorPages()
-            .RequireAuthorization();
 
+      
+        app.MapRazorPages().RequireAuthorization();
         return app;
     }
 }
