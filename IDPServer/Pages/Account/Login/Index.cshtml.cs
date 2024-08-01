@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace IDPServer.Pages.Login
+namespace IDPServer.Pages.Account.Login
 {
     [SecurityHeaders]
     [AllowAnonymous]
@@ -25,6 +25,7 @@ namespace IDPServer.Pages.Login
         private readonly IEventService _events;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IIdentityProviderStore _identityProviderStore;
+        private readonly ISessionManagementService _sessionManagementService;
 
         public ViewModel View { get; set; } = default!;
 
@@ -32,6 +33,7 @@ namespace IDPServer.Pages.Login
         public InputModel Input { get; set; } = default!;
 
         public Index(
+            ISessionManagementService sessionManagementService,
             IIdentityServerInteractionService interaction,
             IAuthenticationSchemeProvider schemeProvider,
             IIdentityProviderStore identityProviderStore,
@@ -39,6 +41,7 @@ namespace IDPServer.Pages.Login
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager)
         {
+            _sessionManagementService = sessionManagementService;
             _userManager = userManager;
             _signInManager = signInManager;
             _interaction = interaction;
@@ -101,7 +104,7 @@ namespace IDPServer.Pages.Login
                 if (result.Succeeded)
                 {
                     var user = await _userManager.FindByNameAsync(Input.Username!);
-                    await _events.RaiseAsync(new UserLoginSuccessEvent(user!.UserName, user.Id, user.UserName, clientId: context?.Client.ClientId));
+                    await _events.RaiseAsync(new UserLoginSuccessEvent(user!.UserName, user.Id.ToString(), user.UserName, clientId: context?.Client.ClientId));
                     Telemetry.Metrics.UserLogin(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider);
 
                     if (context != null)
@@ -122,7 +125,7 @@ namespace IDPServer.Pages.Login
 
                     // request for a local page
                     if (Url.IsLocalUrl(Input.ReturnUrl))
-                    {
+                    {                      
                         return Redirect(Input.ReturnUrl);
                     }
                     else if (string.IsNullOrEmpty(Input.ReturnUrl))
@@ -157,7 +160,7 @@ namespace IDPServer.Pages.Login
             var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
             if (context?.IdP != null && await _schemeProvider.GetSchemeAsync(context.IdP) != null)
             {
-                var local = context.IdP == Duende.IdentityServer.IdentityServerConstants.LocalIdentityProvider;
+                var local = context.IdP == IdentityServerConstants.LocalIdentityProvider;
 
                 // this is meant to short circuit the UI and only trigger the one external IdP
                 View = new ViewModel

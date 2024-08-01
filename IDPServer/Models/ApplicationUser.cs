@@ -4,10 +4,9 @@
 
 using Microsoft.AspNetCore.Identity;
 
-namespace IDPServer.Models
+namespace IDPServer.Models;
+// Add profile data for application users by adding properties to the ApplicationUser class
+public class ApplicationUser : IdentityUser<int>
 {
-    // Add profile data for application users by adding properties to the ApplicationUser class
-    public class ApplicationUser : IdentityUser
-    {
-    }
+
 }

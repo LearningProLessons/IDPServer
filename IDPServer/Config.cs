@@ -1,51 +1,45 @@
 ﻿using Duende.IdentityServer.Models;
 
+
 namespace IDPServer;
+
 public static class Config
 {
     public static IEnumerable<IdentityResource> IdentityResources =>
-        new IdentityResource[]
-        {
-                new IdentityResources.OpenId(),
-                new IdentityResources.Profile(),
-        };
+    [
+        new IdentityResources.OpenId(),
+        new IdentityResources.Profile(),
+    ];
 
     public static IEnumerable<ApiScope> ApiScopes =>
-        new ApiScope[]
-        {
-                new ApiScope("scope1"),
-                new ApiScope("scope2"),
-        };
+    [
+        new ApiScope("scope_sapplus"),
+    ];
 
     public static IEnumerable<Client> Clients =>
-        new Client[]
-        {
-                // m2m client credentials flow client
-                new Client
-                {
-                    ClientId = "m2m.client",
-                    ClientName = "Client Credentials Client",
-
-                    AllowedGrantTypes = GrantTypes.ClientCredentials,
-                    ClientSecrets = { new Secret("511536EF-F270-4058-80CA-1C89C192F69A".Sha256()) },
-
-                    AllowedScopes = { "scope1" }
-                },
-
-                // interactive client using code flow + pkce
-                new Client
-                {
-                    ClientId = "interactive",
-                    ClientSecrets = { new Secret("49C1A7E1-0C79-4A89-A3D6-A37998FB86B0".Sha256()) },
-
-                    AllowedGrantTypes = GrantTypes.Code,
-
-                    RedirectUris = { "https://localhost:44300/signin-oidc" },
-                    FrontChannelLogoutUri = "https://localhost:44300/signout-oidc",
-                    PostLogoutRedirectUris = { "https://localhost:44300/signout-callback-oidc" },
-
-                    AllowOfflineAccess = true,
-                    AllowedScopes = { "openid", "profile", "scope2" }
-                },
-        };
+    [
+         new Client
+         {
+             ClientId = "SappPlusCompanyUIClient",
+             ClientSecrets = { new Secret("K8T1L7J9V0D3R+4W6Fz5X2Q8B1N7P3C4G0A9J7R8H6=".Sha256()) },
+             AllowedGrantTypes = GrantTypes.Code,
+             RequirePkce = true,
+             AllowOfflineAccess = true,
+             RedirectUris = { "https://localhost:7076/signin-oidc" },
+             FrontChannelLogoutUri = "https://localhost:7076/signout-oidc",
+             PostLogoutRedirectUris = { "https://localhost:7076/signout-callback" }, // This should be set correctly
+             AllowedScopes = { "openid", "profile", "scope_sapplus" },
+             AccessTokenLifetime = 3600, // 1 hour
+             IdentityTokenLifetime = 300, // 5 minutes
+             AbsoluteRefreshTokenLifetime = 2592000, // 30 days
+             SlidingRefreshTokenLifetime = 1296000, // 15 days
+             RequireClientSecret = true,
+             ClientName = "SappPlusCompanyUI",
+             RequireConsent = false,
+             AllowRememberConsent = true,
+             AlwaysIncludeUserClaimsInIdToken = false,
+             AllowAccessTokensViaBrowser = false,
+             Enabled = true
+         }
+    ];
 }

@@ -25,7 +25,7 @@ try
     if (args.Contains("/seed"))
     {
         Console.WriteLine("Seeding database...");
-        SeedData.EnsureSeedData(app);
+        await SeedData.EnsureSeedDataAsync(app);
         Console.WriteLine("Done seeding database. Exiting.");
         return;
     }
@@ -39,5 +39,5 @@ catch (Exception ex) when (ex is not HostAbortedException)
 finally
 {
     Console.WriteLine("Shut down complete");
-   // Log.CloseAndFlush();
+    // Log.CloseAndFlush();
 }
