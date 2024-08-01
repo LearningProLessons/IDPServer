@@ -6,6 +6,7 @@ using IDPServer.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using System.Data;
 using System.Security.Claims;
 
 namespace IDPServer;
@@ -18,7 +19,7 @@ public class SeedData
 
         var persistedGrantContext = scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
         var configurationContext = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
-        var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
+        var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
         var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
         // Apply migrations
@@ -108,13 +109,22 @@ public class SeedData
         }
     }
 
-    private static async Task SeedRolesAndUsersAsync(RoleManager<IdentityRole<int>> roleMgr, UserManager<ApplicationUser> userMgr)
+    private static async Task SeedRolesAndUsersAsync(RoleManager<ApplicationRole> roleMgr, UserManager<ApplicationUser> userMgr)
     {
         // Check and create 'admin' role if it does not exist
         var adminRole = await roleMgr.FindByNameAsync("admin");
         if (adminRole == null)
         {
-            adminRole = new IdentityRole<int>("admin");
+
+
+            adminRole = new ApplicationRole("admin")
+            {
+                FromDate = DateTime.Now,
+                ToDate = DateTime.MaxValue,
+                MenuId = 1,
+                CompanyId = 1
+            };
+
             var result = await roleMgr.CreateAsync(adminRole);
             if (!result.Succeeded)
             {

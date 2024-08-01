@@ -20,14 +20,14 @@ namespace IDPServer.Pages.Account.Create
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole<int>> _roleManager;
+        private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly IIdentityServerInteractionService _interaction;
 
         [BindProperty]
         public InputModel Input { get; set; } = default!;
 
 
-        public Index(ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole<int>> roleManager, IIdentityServerInteractionService interaction)
+        public Index(ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, IIdentityServerInteractionService interaction)
         {
             _context = context;
             _userManager = userManager;
@@ -105,7 +105,15 @@ namespace IDPServer.Pages.Account.Create
                 var companyUserRole = await _roleManager.FindByNameAsync("employee");
                 if (companyUserRole == null)
                 {
-                    companyUserRole = new IdentityRole<int>("employee");
+                    companyUserRole = new ApplicationRole("employee")
+                    {
+                        FromDate = DateTime.Now,
+                        ToDate = DateTime.Now.AddDays(10),
+                        MenuId = 1,
+                        CompanyId = 1
+                    };
+
+
                     var roleResult = await _roleManager.CreateAsync(companyUserRole);
                     if (!roleResult.Succeeded)
                     {

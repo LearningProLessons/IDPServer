@@ -9,7 +9,7 @@ public static class IdentityServerExtensions
 {
     public static void AddCustomIdentityServer(this IServiceCollection services, string connectionString)
     {
-        services.AddIdentity<ApplicationUser, IdentityRole<int>>(options =>
+        services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
         {
             // options.SignIn.RequireConfirmedEmail = true;
             options.User.RequireUniqueEmail = false;

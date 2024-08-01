@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IDPServer.Data.Migrations
 {
     [DbContext(typeof(PersistedGrantDbContext))]
-    [Migration("20240801063130_PersistedGrantMigration")]
+    [Migration("20240801112959_PersistedGrantMigration")]
     partial class PersistedGrantMigration
     {
         /// <inheritdoc />
