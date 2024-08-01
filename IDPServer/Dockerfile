@@ -1,33 +1,30 @@
-# Use the official .NET 8 SDK image for the build stage
+# Use the official ASP.NET Core SDK image for building the application
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
-# Set the working directory in the container
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the solution file and project file to the container
-COPY ../IDPServer.sln ./
-COPY . ./
+# Copy the .csproj file and restore dependencies
+COPY IDPServer.csproj . 
+RUN dotnet restore
 
-# Restore dependencies
-RUN dotnet restore IDPServer/IDPServer.csproj
+# Copy the rest of the application source code
+COPY . . 
 
-# Build the project
-RUN dotnet build IDPServer/IDPServer.csproj -c Release -o /app/build
+# Build the application in Release mode
+RUN dotnet publish -c Release -o out
 
-# Publish the project
-RUN dotnet publish IDPServer/IDPServer.csproj -c Release -o /app/publish
-
-# Use the official .NET 8 runtime image for the runtime stage
+# Use the official ASP.NET Core runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
-# Set the working directory in the container
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the published files from the build stage
-COPY --from=build /app/publish .
+# Copy the built application from the previous stage
+COPY --from=build /app/out .
 
-# Expose the port that the application will run on
+# Expose the port the application will run on
 EXPOSE 80
 
-# Set the entry point for the container
+# Set the entry point for the container to run the application
 ENTRYPOINT ["dotnet", "IDPServer.dll"]
