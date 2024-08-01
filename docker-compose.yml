@@ -1,0 +1,32 @@
+# docker-compose.yml
+
+version: '3.8'
+
+services:
+  app1:
+    image: my-sso:v1.0.0
+    container_name: app1
+    restart: always
+    networks:
+      - mynetwork
+
+  app2:
+    image: my-sso:v1.0.0
+    container_name: app2
+    restart: always
+    networks:
+      - mynetwork
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
