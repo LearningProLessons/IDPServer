@@ -40,4 +40,14 @@
 	<ItemGroup>
 	  <None Include="C:\Users\60186\source\repos\IDPServer\IDPServer\.editorconfig" />
 	</ItemGroup>
+  
+  
+  <Target Name="InstallNpmPackages" BeforeTargets="Build">
+    <Exec Command="npm install" />
+  </Target>
+
+  <Target Name="RunGulp" BeforeTargets="Build">
+    <Exec Command="npx gulp" />
+  </Target>
+
 </Project>
