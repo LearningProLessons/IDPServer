@@ -58,6 +58,20 @@ namespace IDPServer.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Organizations",
+                schema: "Sso",
+                columns: table => new
+                {
+                    OrganizationId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    OrganizationName = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Organizations", x => x.OrganizationId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 schema: "Sso",
                 columns: table => new
@@ -219,6 +233,13 @@ namespace IDPServer.Data.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Organizations_OrganizationName",
+                schema: "Sso",
+                table: "Organizations",
+                column: "OrganizationName",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -242,6 +263,10 @@ namespace IDPServer.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens",
+                schema: "Sso");
+
+            migrationBuilder.DropTable(
+                name: "Organizations",
                 schema: "Sso");
 
             migrationBuilder.DropTable(

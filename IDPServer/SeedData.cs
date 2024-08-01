@@ -2,7 +2,9 @@
 using Duende.IdentityServer.EntityFramework.Mappers;
 using Duende.IdentityServer.Models;
 using IdentityModel;
+using IDPServer.Data;
 using IDPServer.Models;
+using IDPServer.Models.Common;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -17,6 +19,7 @@ public class SeedData
         using var scope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope();
 
         var persistedGrantContext = scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
+        var appContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var configurationContext = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
         var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
         var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -29,7 +32,7 @@ public class SeedData
         await SeedConfigurationDataAsync(configurationContext);
 
         // Seed roles and users
-        await SeedRolesAndUsersAsync(roleMgr, userMgr);
+        await SeedRolesAndUsersAsync(roleMgr, userMgr, appContext);
     }
 
     private static async Task SeedConfigurationDataAsync(ConfigurationDbContext context)
@@ -108,70 +111,127 @@ public class SeedData
         }
     }
 
-    private static async Task SeedRolesAndUsersAsync(RoleManager<IdentityRole<int>> roleMgr, UserManager<ApplicationUser> userMgr)
+    private static async Task SeedRolesAndUsersAsync(
+       RoleManager<IdentityRole<int>> roleMgr,
+       UserManager<ApplicationUser> userMgr,
+       ApplicationDbContext dbContext) // Inject ApplicationDbContext
     {
-        // Check and create 'admin' role if it does not exist
-        var adminRole = await roleMgr.FindByNameAsync("admin");
-        if (adminRole == null)
+        // Ensure roles exist
+        var roles = new[] { "admin", "employee", "manager" }; // Define roles
+        foreach (var roleName in roles)
         {
-            adminRole = new IdentityRole<int>("admin");
-            var result = await roleMgr.CreateAsync(adminRole);
-            if (!result.Succeeded)
+            if (await roleMgr.FindByNameAsync(roleName) == null)
             {
-                throw new Exception($"Failed to create role 'admin': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                var role = new IdentityRole<int>(roleName);
+                var result = await roleMgr.CreateAsync(role);
+                if (!result.Succeeded)
+                {
+                    throw new Exception($"Failed to create role '{roleName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                }
+                Log.Debug($"Role '{roleName}' created");
             }
-            Log.Debug("Admin role created");
+            else
+            {
+                Log.Debug($"Role '{roleName}' already exists");
+            }
         }
-        else
+
+        // Ensure organizations exist
+        var organizations = new[] { "OrgA", "OrgB", "OrgC" }; // Define organizations
+        foreach (var orgName in organizations)
         {
-            Log.Debug("Admin role already exists");
+            if (!await dbContext.Organizations.AnyAsync(o => o.OrganizationName == orgName))
+            {
+                var organization = new Organization { OrganizationName = orgName };
+                dbContext.Organizations.Add(organization);
+                await dbContext.SaveChangesAsync();
+                Log.Debug($"Organization '{orgName}' created");
+            }
+            else
+            {
+                Log.Debug($"Organization '{orgName}' already exists");
+            }
         }
 
-        // Check and create 'admin' user if it does not exist
-        var admin = await userMgr.FindByNameAsync("admin");
-        if (admin == null)
+        // Example user creation with roles in different organizations
+        var users = new List<(string UserName, string Email, string Password, string PhoneNumber, Dictionary<string, string> RolesAndOrganizations)>
+    {
+        (
+            "admin",
+            "admin@nill.com",
+            "AdminPassword123!",
+            "09203216120",
+            new Dictionary<string, string> { { "admin", "OrgA" }, { "employee", "OrgB" } }
+        ),
+        (
+            "user1",
+            "user1@example.com",
+            "UserPassword123!",
+            "09203216121",
+            new Dictionary<string, string> { { "employee", "OrgC" } }
+        )
+    };
+
+        foreach (var (userName, email, password, phoneNumber, rolesAndOrgs) in users)
         {
-            admin = new ApplicationUser
+            var user = await userMgr.FindByNameAsync(userName);
+            if (user == null)
             {
-                UserName = "admin",
-                Email = "admin@nill.com",
-                EmailConfirmed = true,
-                AccessFailedCount = 0,
-                PhoneNumber = "09203216120",
-                TwoFactorEnabled = false,
-            };
+                user = new ApplicationUser
+                {
+                    UserName = userName,
+                    Email = email,
+                    EmailConfirmed = true,
+                    AccessFailedCount = 0,
+                    PhoneNumber = phoneNumber,
+                    TwoFactorEnabled = false
+                };
 
-            var result = await userMgr.CreateAsync(admin, "Heli@ghar771379");
-            if (!result.Succeeded)
-            {
-                throw new Exception($"Failed to create user 'admin': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                var result = await userMgr.CreateAsync(user, password);
+                if (!result.Succeeded)
+                {
+                    throw new Exception($"Failed to create user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                }
+
+                // Assign roles and organizations
+                foreach (var (role, orgName) in rolesAndOrgs)
+                {
+                    // Ensure role exists
+                    var roleExists = await roleMgr.RoleExistsAsync(role);
+                    if (!roleExists)
+                    {
+                        throw new Exception($"Role '{role}' does not exist");
+                    }
+
+                    // Assign role to user
+                    result = await userMgr.AddToRoleAsync(user, role);
+                    if (!result.Succeeded)
+                    {
+                        throw new Exception($"Failed to assign role '{role}' to user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    }
+
+                    // Add claims for organization
+                    var organization = await dbContext.Organizations.FirstOrDefaultAsync(o => o.OrganizationName == orgName);
+                    if (organization == null)
+                    {
+                        throw new Exception($"Organization '{orgName}' not found");
+                    }
+
+                    var claim = new Claim("organization", orgName);
+                    result = await userMgr.AddClaimAsync(user, claim);
+                    if (!result.Succeeded)
+                    {
+                        throw new Exception($"Failed to add organization claim '{orgName}' to user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    }
+                }
+
+                Log.Debug($"User '{userName}' created with roles and organizations");
             }
-
-            result = await userMgr.AddToRoleAsync(admin, "admin");
-            if (!result.Succeeded)
+            else
             {
-                throw new Exception($"Failed to assign role to user 'admin': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                Log.Debug($"User '{userName}' already exists");
             }
-
-            var claims = new List<Claim>
-            {
-                new Claim(JwtClaimTypes.Name, "Admin User"),
-                new Claim(JwtClaimTypes.GivenName, "Admin"),
-                new Claim(JwtClaimTypes.FamilyName, "User"),
-                new Claim(JwtClaimTypes.WebSite, "https://www.sapegah.com")
-            };
-
-            result = await userMgr.AddClaimsAsync(admin, claims);
-            if (!result.Succeeded)
-            {
-                throw new Exception($"Failed to add claims to user 'admin': {string.Join(", ", result.Errors.Select(e => e.Description))}");
-            }
-
-            Log.Debug("Admin user created");
-        }
-        else
-        {
-            Log.Debug("Admin user already exists");
         }
     }
+
 }

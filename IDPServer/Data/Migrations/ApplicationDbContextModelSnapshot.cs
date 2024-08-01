@@ -91,6 +91,26 @@ namespace IDPServer.Data.Migrations
                     b.ToTable("AspNetUsers", "Sso");
                 });
 
+            modelBuilder.Entity("IDPServer.Models.Common.Organization", b =>
+                {
+                    b.Property<int>("OrganizationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrganizationId"));
+
+                    b.Property<string>("OrganizationName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("OrganizationId");
+
+                    b.HasIndex("OrganizationName")
+                        .IsUnique();
+
+                    b.ToTable("Organizations", "Sso");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
                 {
                     b.Property<int>("Id")
