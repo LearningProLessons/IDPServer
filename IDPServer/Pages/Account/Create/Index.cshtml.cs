@@ -20,14 +20,14 @@ namespace IDPServer.Pages.Account.Create
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<IdentityRole<int>> _roleManager;
         private readonly IIdentityServerInteractionService _interaction;
 
         [BindProperty]
         public InputModel Input { get; set; } = default!;
 
 
-        public Index(ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IIdentityServerInteractionService interaction)
+        public Index(ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole<int>> roleManager, IIdentityServerInteractionService interaction)
         {
             _context = context;
             _userManager = userManager;
@@ -86,16 +86,7 @@ namespace IDPServer.Pages.Account.Create
                 {
                     UserName = Input.Username,
                     Email = Input.Email,
-                    FirstName = firstName,
-                    LastName = lastName,
-                    PhoneNumber = "0912244935",
-                    NationalCode = "4711046003",
-                    ShopName = "NILL shop",
-                    Birthday = DateTime.Now,
-                    CcPhoto = "/upload/myphoto.jpg",
-                    CreatedDateTime = DateTime.Now,
-                    EmailConfirmed = true,
-                    BusinessId = Guid.NewGuid(),
+                    EmailConfirmed = true,       
                 };
 
                 // Create the user asynchronously
@@ -111,10 +102,10 @@ namespace IDPServer.Pages.Account.Create
                     return Page();
                 }
 
-                var companyUserRole = await _roleManager.FindByNameAsync("company_user");
+                var companyUserRole = await _roleManager.FindByNameAsync("employee");
                 if (companyUserRole == null)
                 {
-                    companyUserRole = new IdentityRole("company_user");
+                    companyUserRole = new IdentityRole<int>("employee");
                     var roleResult = await _roleManager.CreateAsync(companyUserRole);
                     if (!roleResult.Succeeded)
                     {
@@ -140,7 +131,7 @@ namespace IDPServer.Pages.Account.Create
                 }
 
                 // User created and role assigned successfully
-                var isUser = new IdentityServerUser(user.Id)
+                var isUser = new IdentityServerUser(user.Id.ToString())
                 {
                     DisplayName = user.UserName
                 };

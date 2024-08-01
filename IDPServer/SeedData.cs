@@ -18,7 +18,7 @@ public class SeedData
 
         var persistedGrantContext = scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
         var configurationContext = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
-        var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
         var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
         // Apply migrations
@@ -108,13 +108,13 @@ public class SeedData
         }
     }
 
-    private static async Task SeedRolesAndUsersAsync(RoleManager<IdentityRole> roleMgr, UserManager<ApplicationUser> userMgr)
+    private static async Task SeedRolesAndUsersAsync(RoleManager<IdentityRole<int>> roleMgr, UserManager<ApplicationUser> userMgr)
     {
         // Check and create 'admin' role if it does not exist
         var adminRole = await roleMgr.FindByNameAsync("admin");
         if (adminRole == null)
         {
-            adminRole = new IdentityRole("admin");
+            adminRole = new IdentityRole<int>("admin");
             var result = await roleMgr.CreateAsync(adminRole);
             if (!result.Succeeded)
             {
@@ -134,24 +134,14 @@ public class SeedData
             admin = new ApplicationUser
             {
                 UserName = "admin",
-                Email = "admin@sapegah.com",
+                Email = "admin@nill.com",
                 EmailConfirmed = true,
-                FirstName = "Admin",
-                LastName = "Sap",
-                UserTypeId = 3, // user SAP, full access 
                 AccessFailedCount = 0,
-                Birthday = DateTime.Now,
-                CreatedDateTime = DateTime.Now,
-                GenderId = 1,
-                IdentityId = 1,// کاربر حقیقی
-                PhoneNumber = "09120000000",
-                NationalCode = "0000000000",
-                ShopName = "SAP",
+                PhoneNumber = "09203216120",
                 TwoFactorEnabled = false,
-                NormalizedUserName = "SAP"
             };
 
-            var result = await userMgr.CreateAsync(admin, "Sap@admin1234");
+            var result = await userMgr.CreateAsync(admin, "Heli@ghar771379");
             if (!result.Succeeded)
             {
                 throw new Exception($"Failed to create user 'admin': {string.Join(", ", result.Errors.Select(e => e.Description))}");
