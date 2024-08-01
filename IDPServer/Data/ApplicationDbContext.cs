@@ -24,8 +24,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         // Configure schema
         builder.HasDefaultSchema("Sso");
 
-        builder.Entity<Organization>()
-          .HasIndex(o => o.OrganizationName)
-          .IsUnique();
+
+
+        // Apply configurations from the assembly
+        builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
 }
