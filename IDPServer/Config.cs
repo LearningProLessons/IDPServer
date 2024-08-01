@@ -13,14 +13,14 @@ public static class Config
 
     public static IEnumerable<ApiScope> ApiScopes =>
     [
-        new ApiScope("scope_sapplus"),
+        new ApiScope("scope1"),
     ];
 
     public static IEnumerable<Client> Clients =>
     [
          new Client
          {
-             ClientId = "SappPlusCompanyUIClient",
+             ClientId = "NILLClient",
              ClientSecrets = { new Secret("K8T1L7J9V0D3R+4W6Fz5X2Q8B1N7P3C4G0A9J7R8H6=".Sha256()) },
              AllowedGrantTypes = GrantTypes.Code,
              RequirePkce = true,
@@ -28,13 +28,13 @@ public static class Config
              RedirectUris = { "https://localhost:7076/signin-oidc" },
              FrontChannelLogoutUri = "https://localhost:7076/signout-oidc",
              PostLogoutRedirectUris = { "https://localhost:7076/signout-callback" }, // This should be set correctly
-             AllowedScopes = { "openid", "profile", "scope_sapplus" },
+             AllowedScopes = { "openid", "profile", "scope1" },
              AccessTokenLifetime = 3600, // 1 hour
              IdentityTokenLifetime = 300, // 5 minutes
              AbsoluteRefreshTokenLifetime = 2592000, // 30 days
              SlidingRefreshTokenLifetime = 1296000, // 15 days
              RequireClientSecret = true,
-             ClientName = "SappPlusCompanyUI",
+             ClientName = "NILL_Developers",
              RequireConsent = false,
              AllowRememberConsent = true,
              AlwaysIncludeUserClaimsInIdToken = false,
