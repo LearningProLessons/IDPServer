@@ -1,5 +1,5 @@
 ﻿using Duende.IdentityServer.Models;
-
+using static System.Net.WebRequestMethods;
 
 namespace IDPServer;
 
@@ -7,6 +7,7 @@ public static class Config
 {
     public static IEnumerable<string> Organizations => new List<string>
     {
+        // Your existing organization names
         "شرکت پخش پگاه",
         "شرکت لینا",
         "شرکت فیروز",
@@ -37,40 +38,16 @@ public static class Config
     {
         new IdentityResources.OpenId(),
         new IdentityResources.Profile(),
-        new IdentityResource("organization", "سازمان", new List<string> { "organization" })
+        new IdentityResource("organization_claim", "سازمان", new List<string> { "organization" }) // Renamed identity scope
     };
 
     public static IEnumerable<ApiScope> ApiScopes =>
     new List<ApiScope>
     {
-        #region Admin Scope
         new ApiScope("all.read", "Read access for all resources"),
         new ApiScope("all.write", "Write access for all resources"),
-        #endregion
-
-        new ApiScope("broadcastingcompanies.companycustomers.read", "Read access for Company Customers"),
-        new ApiScope("broadcastingcompanies.companycustomers.write", "Write access for Company Customers"),
-        new ApiScope("companycustomer.read", "Read access for Company Customer"),
-        new ApiScope("companycustomer.write", "Write access for Company Customer"),
-        new ApiScope("orderdetails.read", "Read access for Order Details"),
-        new ApiScope("orderdetails.write", "Write access for Order Details"),
-        new ApiScope("orders.read", "Read access for Orders"),
-        new ApiScope("orders.write", "Write access for Orders"),
-        new ApiScope("dashboard.broadcastingcompanies.companycustomers.read", "Read access for Dashboard Company Customers"),
-        new ApiScope("dashboard.broadcastingcompanies.companycustomers.write", "Write access for Dashboard Company Customers"),
-        new ApiScope("dashboard.companycustomer.read", "Read access for Dashboard Company Customer"),
-        new ApiScope("dashboard.companycustomer.write", "Write access for Dashboard Company Customer"),
-        new ApiScope("dashboard.draw.read", "Read access for Draw"),
-        new ApiScope("dashboard.draw.write", "Write access for Draw"),
-        new ApiScope("dashboard.factor.read", "Read access for Factor"),
-        new ApiScope("dashboard.factor.write", "Write access for Factor"),
-        new ApiScope("dashboard.orders.read", "Read access for Dashboard Orders"),
-        new ApiScope("dashboard.orders.write", "Write access for Dashboard Orders"),
-        new ApiScope("dashboard.usersmanagement.read", "Read access for Users Management"),
-        new ApiScope("dashboard.usersmanagement.write", "Write access for Users Management"),
-        new ApiScope("index.read", "Read access for Index"),
-        new ApiScope("index.write", "Write access for Index"),
-
+        new ApiScope("order.read", "Read access for Order"),
+        new ApiScope("order.write", "Write access for Order"),
     };
 
     public static IEnumerable<Client> Clients =>
@@ -86,7 +63,14 @@ public static class Config
             RedirectUris = { "https://localhost:7076/signin-oidc" },
             FrontChannelLogoutUri = "https://localhost:7076/signout-oidc",
             PostLogoutRedirectUris = { "https://localhost:7076/signout-callback" },
-            AllowedScopes = { "openid", "profile", "organization", "all.read", "all.write" }, 
+            AllowedScopes = {
+                "openid",
+                "profile",
+                "all.read",
+                "all.write",
+                "order.read",
+                "order.write"
+            },
             AccessTokenLifetime = 3600, // 1 hour
             IdentityTokenLifetime = 300, // 5 minutes
             AbsoluteRefreshTokenLifetime = 2592000, // 30 days
@@ -97,7 +81,6 @@ public static class Config
             AllowRememberConsent = true,
             AlwaysIncludeUserClaimsInIdToken = false,
             AllowAccessTokensViaBrowser = false,
-            Enabled = true
         }
     };
 }
