@@ -112,9 +112,9 @@ public class SeedData
     }
 
     private static async Task SeedRolesAndUsersAsync(
-       RoleManager<IdentityRole<int>> roleMgr,
-       UserManager<ApplicationUser> userMgr,
-       ApplicationDbContext dbContext) // Inject ApplicationDbContext
+    RoleManager<IdentityRole<int>> roleMgr,
+    UserManager<ApplicationUser> userMgr,
+    ApplicationDbContext dbContext) // Inject ApplicationDbContext
     {
         // Ensure roles exist
         var roles = new[] { "admin", "employee", "manager" }; // Define roles
@@ -136,9 +136,8 @@ public class SeedData
             }
         }
 
-        // Ensure organizations exist
-        var organizations = new[] { "OrgA", "OrgB", "OrgC" }; // Define organizations
-        foreach (var orgName in organizations)
+        // Ensure organizations exist using Config
+        foreach (var orgName in Config.Organizations)
         {
             if (!await dbContext.Organizations.AnyAsync(o => o.OrganizationName == orgName))
             {
@@ -153,22 +152,26 @@ public class SeedData
             }
         }
 
+        // Get organization IDs for easier access
+        var organizationIds = await dbContext.Organizations
+            .ToDictionaryAsync(o => o.OrganizationName, o => o.OrganizationId);
+
         // Example user creation with roles in different organizations
-        var users = new List<(string UserName, string Email, string Password, string PhoneNumber, Dictionary<string, string> RolesAndOrganizations)>
+        var users = new List<(string UserName, string Email, string Password, string PhoneNumber, Dictionary<string, int> RolesAndOrganizations)>
     {
         (
             "admin",
             "admin@nill.com",
             "AdminPassword123!",
             "09203216120",
-            new Dictionary<string, string> { { "admin", "OrgA" }, { "employee", "OrgB" } }
+            new Dictionary<string, int> { { "admin", organizationIds["شرکت پخش پگاه"] }, { "employee", organizationIds["شرکت لینا"] } }
         ),
         (
             "user1",
             "user1@example.com",
             "UserPassword123!",
             "09203216121",
-            new Dictionary<string, string> { { "employee", "OrgC" } }
+            new Dictionary<string, int> { { "employee", organizationIds["شرکت فیروز"] } }
         )
     };
 
@@ -194,7 +197,7 @@ public class SeedData
                 }
 
                 // Assign roles and organizations
-                foreach (var (role, orgName) in rolesAndOrgs)
+                foreach (var (role, orgId) in rolesAndOrgs)
                 {
                     // Ensure role exists
                     var roleExists = await roleMgr.RoleExistsAsync(role);
@@ -210,18 +213,30 @@ public class SeedData
                         throw new Exception($"Failed to assign role '{role}' to user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
                     }
 
-                    // Add claims for organization
-                    var organization = await dbContext.Organizations.FirstOrDefaultAsync(o => o.OrganizationName == orgName);
+                    // Add claims for organization using ID
+                    var organization = await dbContext.Organizations.FindAsync(orgId);
                     if (organization == null)
                     {
-                        throw new Exception($"Organization '{orgName}' not found");
+                        throw new Exception($"Organization with ID '{orgId}' not found");
                     }
 
-                    var claim = new Claim("organization", orgName);
+                    var claim = new Claim("organization_id", orgId.ToString());
                     result = await userMgr.AddClaimAsync(user, claim);
                     if (!result.Succeeded)
                     {
-                        throw new Exception($"Failed to add organization claim '{orgName}' to user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                        throw new Exception($"Failed to add organization claim '{orgId}' to user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    }
+
+                    // Add scopes based on role
+                    if (role == "admin")
+                    {
+                        await userMgr.AddClaimAsync(user, new Claim("scope", "all.read"));
+                        await userMgr.AddClaimAsync(user, new Claim("scope", "all.write"));
+                    }
+                    else
+                    {
+                        await userMgr.AddClaimAsync(user, new Claim("scope", "order.read"));
+                        await userMgr.AddClaimAsync(user, new Claim("scope", "order.write"));
                     }
                 }
 
@@ -233,5 +248,6 @@ public class SeedData
             }
         }
     }
+
 
 }
