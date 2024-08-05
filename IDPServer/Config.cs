@@ -1,5 +1,5 @@
 ﻿using Duende.IdentityServer.Models;
-using static System.Net.WebRequestMethods;
+using System.Collections.Generic;
 
 namespace IDPServer;
 
@@ -41,14 +41,31 @@ public static class Config
         new IdentityResource("organization_claim", "سازمان", new List<string> { "organization" }) // Renamed identity scope
     };
 
-    public static IEnumerable<ApiScope> ApiScopes =>
-    new List<ApiScope>
+    // Method to generate read and write scopes
+    public static IEnumerable<ApiScope> GenerateScopes(string baseString)
     {
-        new ApiScope("all.read", "Read access for all resources"),
-        new ApiScope("all.write", "Write access for all resources"),
-        new ApiScope("order.read", "Read access for Order"),
-        new ApiScope("order.write", "Write access for Order"),
-    };
+        return new List<ApiScope>
+        {
+            new ApiScope($"{baseString}.read", $"Read access for {baseString}"),
+            new ApiScope($"{baseString}.write", $"Write access for {baseString}")
+        };
+    }
+
+    public static IEnumerable<ApiScope> ApiScopes =>
+      new List<ApiScope>()
+      {
+           new ApiScope("all.read", "Read access for all resources"),
+           new ApiScope("all.write", "Write access for all resources")
+      }
+
+    .Concat(GenerateScopes("dashboard")) // Scopes for Dashboard
+    .Concat(GenerateScopes("broadcastingCompanies")) // Scopes for Broadcasting Companies
+    .Concat(GenerateScopes("companyCustomers")) // Scopes for Company Customers
+    .Concat(GenerateScopes("draw")) // Scopes for Draw
+    .Concat(GenerateScopes("factor")) // Scopes for Factor
+    .Concat(GenerateScopes("orders")) // Scopes for Orders
+    .Concat(GenerateScopes("usersManagement")); // Scopes for Users Management
+
 
     public static IEnumerable<Client> Clients =>
     new List<Client>
@@ -68,8 +85,20 @@ public static class Config
                 "profile",
                 "all.read",
                 "all.write",
-                "order.read",
-                "order.write"
+                "dashboard.read",
+                "dashboard.write",
+                "broadcastingCompanies.read",
+                "broadcastingCompanies.write",
+                "companyCustomers.read",
+                "companyCustomers.write",
+                "draw.read",
+                "draw.write",
+                "factor.read",
+                "factor.write",
+                "orders.read",
+                "orders.write",
+                "usersManagement.read",
+                "usersManagement.write",
             },
             AccessTokenLifetime = 3600, // 1 hour
             IdentityTokenLifetime = 300, // 5 minutes
