@@ -1,5 +1,6 @@
 ﻿using Duende.IdentityServer.Models;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace IDPServer;
 
@@ -34,12 +35,14 @@ public static class Config
     };
 
     public static IEnumerable<IdentityResource> IdentityResources =>
-    new List<IdentityResource>
-    {
-        new IdentityResources.OpenId(),
-        new IdentityResources.Profile(),
-        new IdentityResource("organization_claim", "سازمان", new List<string> { "organization" }) // Renamed identity scope
-    };
+        new List<IdentityResource>
+        {
+            new IdentityResources.OpenId(),
+            new IdentityResources.Profile(),
+            new IdentityResource("organization_claim", "سازمان", new List<string> { "organization_id" }) ,
+            new IdentityResource("roles", "User roles", new List<string> { "role" }), // Identity resource for roles
+            new IdentityResource("name", "User name", new List<string> { "name" }) // Identity resource for user 
+        };
 
     // Method to generate read and write scopes
     public static IEnumerable<ApiScope> GenerateScopes(string baseString)
@@ -57,15 +60,13 @@ public static class Config
            new ApiScope("all.read", "Read access for all resources"),
            new ApiScope("all.write", "Write access for all resources")
       }
-
-    .Concat(GenerateScopes("dashboard")) // Scopes for Dashboard
-    .Concat(GenerateScopes("broadcastingCompanies")) // Scopes for Broadcasting Companies
-    .Concat(GenerateScopes("companyCustomers")) // Scopes for Company Customers
-    .Concat(GenerateScopes("draw")) // Scopes for Draw
-    .Concat(GenerateScopes("factor")) // Scopes for Factor
-    .Concat(GenerateScopes("orders")) // Scopes for Orders
-    .Concat(GenerateScopes("usersManagement")); // Scopes for Users Management
-
+      .Concat(GenerateScopes("dashboard")) // Scopes for Dashboard
+      .Concat(GenerateScopes("broadcastingCompanies")) // Scopes for Broadcasting Companies
+      .Concat(GenerateScopes("companyCustomers")) // Scopes for Company Customers
+      .Concat(GenerateScopes("draw")) // Scopes for Draw
+      .Concat(GenerateScopes("factor")) // Scopes for Factor
+      .Concat(GenerateScopes("orders")) // Scopes for Orders
+      .Concat(GenerateScopes("usersManagement")); // Scopes for Users Management
 
     public static IEnumerable<Client> Clients =>
     new List<Client>
@@ -83,6 +84,8 @@ public static class Config
             AllowedScopes = {
                 "openid",
                 "profile",
+                "roles", // Include roles scope
+                "name", // Include name scope
                 "all.read",
                 "all.write",
                 "dashboard.read",
@@ -108,7 +111,7 @@ public static class Config
             ClientName = "NILL_Developers",
             RequireConsent = false,
             AllowRememberConsent = true,
-            AlwaysIncludeUserClaimsInIdToken = false,
+            AlwaysIncludeUserClaimsInIdToken = true, // Ensure claims are included
             AllowAccessTokensViaBrowser = false,
         }
     };

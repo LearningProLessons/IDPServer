@@ -111,10 +111,14 @@ public class SeedData
         }
     }
 
+
+
+
+
     private static async Task SeedRolesAndUsersAsync(
     RoleManager<IdentityRole<int>> roleMgr,
     UserManager<ApplicationUser> userMgr,
-    ApplicationDbContext dbContext) // Inject ApplicationDbContext
+    ApplicationDbContext dbContext)
     {
         // Ensure roles exist
         var roles = new[] { "admin", "employee", "manager" }; // Define roles
@@ -200,8 +204,7 @@ public class SeedData
                 foreach (var (role, orgId) in rolesAndOrgs)
                 {
                     // Ensure role exists
-                    var roleExists = await roleMgr.RoleExistsAsync(role);
-                    if (!roleExists)
+                    if (!await roleMgr.RoleExistsAsync(role))
                     {
                         throw new Exception($"Role '{role}' does not exist");
                     }
@@ -227,16 +230,30 @@ public class SeedData
                         throw new Exception($"Failed to add organization claim '{orgId}' to user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
                     }
 
-                    // Add scopes based on role
-                    if (role == "admin")
+                    // Add claims for roles
+                    var roleClaim = new Claim(JwtClaimTypes.Role, role);
+                    result = await userMgr.AddClaimAsync(user, roleClaim);
+                    if (!result.Succeeded)
                     {
-                        await userMgr.AddClaimAsync(user, new Claim("scope", "all.read"));
-                        await userMgr.AddClaimAsync(user, new Claim("scope", "all.write"));
+                        throw new Exception($"Failed to add role claim '{role}' to user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
                     }
-                    else
+
+                    // Add user name claim
+                    var nameClaim = new Claim(JwtClaimTypes.Name, userName);
+                    result = await userMgr.AddClaimAsync(user, nameClaim);
+                    if (!result.Succeeded)
                     {
-                        await userMgr.AddClaimAsync(user, new Claim("scope", "orders.read"));
-                        await userMgr.AddClaimAsync(user, new Claim("scope", "orders.write"));
+                        throw new Exception($"Failed to add name claim '{userName}' to user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    }
+
+                    // Add scopes based on role
+                    var scopes = role == "admin"
+                        ? new[] { "all.read", "all.write" }
+                        : new[] { "orders.read", "orders.write" };
+
+                    foreach (var scope in scopes)
+                    {
+                        await userMgr.AddClaimAsync(user, new Claim("scope", scope));
                     }
                 }
 
@@ -248,6 +265,5 @@ public class SeedData
             }
         }
     }
-
 
 }
