@@ -58,17 +58,17 @@ namespace IDPServer.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Organizations",
+                name: "Companies",
                 schema: "Sso",
                 columns: table => new
                 {
-                    OrganizationId = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    OrganizationName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Organizations", x => x.OrganizationId);
+                    table.PrimaryKey("PK_Companies", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -235,10 +235,10 @@ namespace IDPServer.Data.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Organizations_OrganizationName",
+                name: "IX_Companies_Name",
                 schema: "Sso",
-                table: "Organizations",
-                column: "OrganizationName",
+                table: "Companies",
+                column: "Name",
                 unique: true);
         }
 
@@ -266,7 +266,7 @@ namespace IDPServer.Data.Migrations
                 schema: "Sso");
 
             migrationBuilder.DropTable(
-                name: "Organizations",
+                name: "Companies",
                 schema: "Sso");
 
             migrationBuilder.DropTable(

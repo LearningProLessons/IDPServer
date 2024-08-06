@@ -6,9 +6,9 @@ namespace IDPServer;
 
 public static class Config
 {
-    public static IEnumerable<string> Organizations => new List<string>
+    public static IEnumerable<string> Companies => new List<string>
     {
-        // Your existing organization names
+        // Your existing company names
         "شرکت پخش پگاه",
         "شرکت لینا",
         "شرکت فیروز",

@@ -12,7 +12,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         : base(options)
     {
     }
-    public DbSet<Organization> Organizations { get; set; } // Add DbSet for organizations
+    public DbSet<Company> Companies { get; set; } // Add DbSet for companies
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

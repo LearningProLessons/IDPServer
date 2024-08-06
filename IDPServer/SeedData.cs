@@ -140,27 +140,27 @@ public class SeedData
             }
         }
 
-        // Ensure organizations exist using Config
-        foreach (var orgName in Config.Organizations)
+        // Ensure companies exist using Config
+        foreach (var orgName in Config.Companies)
         {
-            if (!await dbContext.Organizations.AnyAsync(o => o.OrganizationName == orgName))
+            if (!await dbContext.Companies.AnyAsync(o => o.Name == orgName))
             {
-                var organization = new Organization { OrganizationName = orgName };
-                dbContext.Organizations.Add(organization);
+                var company = new Company { Name = orgName };
+                dbContext.Companies.Add(company);
                 await dbContext.SaveChangesAsync();
-                Log.Debug($"Organization '{orgName}' created");
+                Log.Debug($"Company '{orgName}' created");
             }
             else
             {
-                Log.Debug($"Organization '{orgName}' already exists");
+                Log.Debug($"Company '{orgName}' already exists");
             }
         }
 
-        // Get organization IDs for easier access
-        var organizationIds = await dbContext.Organizations
-            .ToDictionaryAsync(o => o.OrganizationName, o => o.OrganizationId);
+        // Get company IDs for easier access
+        var organizationIds = await dbContext.Companies
+            .ToDictionaryAsync(o => o.Name, o => o.Id);
 
-        // Example user creation with roles in different organizations
+        // Example user creation with roles in different companies
         var users = new List<(string UserName, string Email, string Password, string PhoneNumber, Dictionary<string, int> RolesAndOrganizations)>
     {
         (
@@ -200,7 +200,7 @@ public class SeedData
                     throw new Exception($"Failed to create user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
                 }
 
-                // Assign roles and organizations
+                // Assign roles and companies
                 foreach (var (role, orgId) in rolesAndOrgs)
                 {
                     // Ensure role exists
@@ -216,18 +216,18 @@ public class SeedData
                         throw new Exception($"Failed to assign role '{role}' to user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
                     }
 
-                    // Add claims for organization using ID
-                    var organization = await dbContext.Organizations.FindAsync(orgId);
-                    if (organization == null)
+                    // Add claims for company using ID
+                    var company = await dbContext.Companies.FindAsync(orgId);
+                    if (company == null)
                     {
-                        throw new Exception($"Organization with ID '{orgId}' not found");
+                        throw new Exception($"Company with ID '{orgId}' not found");
                     }
 
                     var claim = new Claim("organization_id", orgId.ToString());
                     result = await userMgr.AddClaimAsync(user, claim);
                     if (!result.Succeeded)
                     {
-                        throw new Exception($"Failed to add organization claim '{orgId}' to user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                        throw new Exception($"Failed to add company claim '{orgId}' to user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
                     }
 
                     // Add claims for roles
@@ -257,7 +257,7 @@ public class SeedData
                     }
                 }
 
-                Log.Debug($"User '{userName}' created with roles and organizations");
+                Log.Debug($"User '{userName}' created with roles and companies");
             }
             else
             {

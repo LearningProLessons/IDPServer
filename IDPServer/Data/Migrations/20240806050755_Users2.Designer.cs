@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IDPServer.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240805102006_Users2")]
+    [Migration("20240806050755_Users2")]
     partial class Users2
     {
         /// <inheritdoc />
@@ -94,25 +94,25 @@ namespace IDPServer.Data.Migrations
                     b.ToTable("AspNetUsers", "Sso");
                 });
 
-            modelBuilder.Entity("IDPServer.Models.Common.Organization", b =>
+            modelBuilder.Entity("IDPServer.Models.Common.Company", b =>
                 {
-                    b.Property<int>("OrganizationId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrganizationId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("OrganizationName")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.HasKey("OrganizationId");
+                    b.HasKey("Id");
 
-                    b.HasIndex("OrganizationName")
+                    b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Organizations", "Sso");
+                    b.ToTable("Companies", "Sso");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
