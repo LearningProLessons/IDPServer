@@ -1,4 +1,5 @@
 ﻿using IDPServer.Models;
+using IDPServer.Models.Common;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +12,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         : base(options)
     {
     }
-
+    public DbSet<Organization> Organizations { get; set; } // Include this line
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -21,5 +22,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
 
         // Configure schema
         builder.HasDefaultSchema("Sso");
+
+
+
+        // Apply configurations from the assembly
+        builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
 }

@@ -58,6 +58,20 @@ namespace IDPServer.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Organizations",
+                schema: "Sso",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Organizations", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 schema: "Sso",
                 columns: table => new
@@ -242,6 +256,10 @@ namespace IDPServer.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens",
+                schema: "Sso");
+
+            migrationBuilder.DropTable(
+                name: "Organizations",
                 schema: "Sso");
 
             migrationBuilder.DropTable(

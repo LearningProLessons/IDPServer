@@ -1,5 +1,6 @@
 ﻿using IDPServer;
 using Serilog;
+using System;
 
 Log.Logger = new LoggerConfiguration()
     // .WriteTo.Console()
@@ -15,6 +16,18 @@ try
         // .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
         .Enrich.FromLogContext()
         .ReadFrom.Configuration(ctx.Configuration));
+
+    //builder.WebHost.ConfigureKestrel(serverOptions =>
+    //{
+    //    serverOptions.ListenAnyIP(5001); // Listen on all IPs on port 5000
+    //});
+
+    // Bind configuration to AppSettings model
+    var appSettings = new AppSettings();
+    builder.Configuration.Bind(appSettings);
+
+    // Add AppSettings to the DI container
+    builder.Services.AddSingleton(appSettings);
 
     var app = builder
         .ConfigureServices()

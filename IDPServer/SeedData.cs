@@ -1,14 +1,17 @@
 ﻿using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.EntityFramework.Mappers;
-using Duende.IdentityServer.Models;
-using IdentityModel;
+using IDPServer.Data;
 using IDPServer.Models;
+using Serilog;
+using Duende.IdentityServer.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Serilog;
 using System.Security.Claims;
+using IDPServer.Models.Common;
+
 
 namespace IDPServer;
+
 
 public class SeedData
 {
@@ -17,6 +20,7 @@ public class SeedData
         using var scope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope();
 
         var persistedGrantContext = scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
+        var appContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var configurationContext = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
         var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
         var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -27,6 +31,7 @@ public class SeedData
 
         // Seed IdentityServer data
         await SeedConfigurationDataAsync(configurationContext);
+        await SeedOrganizationsAsync(appContext);
 
         // Seed roles and users
         await SeedRolesAndUsersAsync(roleMgr, userMgr);
@@ -76,19 +81,22 @@ public class SeedData
             Log.Debug("ApiScopes already populated");
         }
 
-        //if (!await context.ApiResources.AnyAsync())
-        //{
-        //    Log.Debug("ApiResources being populated");
-        //    foreach (var scope in Config.ApiResources.ToList())
-        //    {
-        //        context.ApiResources.Add(scope.ToEntity());
-        //    }
-        //    await context.SaveChangesAsync();
-        //}
-        //else
-        //{
-        //    Log.Debug("ApiResources already populated");
-        //}
+        // Uncomment this block if you are using ApiResources
+        /*
+        if (!await context.ApiResources.AnyAsync())
+        {
+            Log.Debug("ApiResources being populated");
+            foreach (var resource in Config.ApiResources.ToList())
+            {
+                context.ApiResources.Add(resource.ToEntity());
+            }
+            await context.SaveChangesAsync();
+        }
+        else
+        {
+            Log.Debug("ApiResources already populated");
+        }
+        */
 
         if (!await context.IdentityProviders.AnyAsync())
         {
@@ -107,71 +115,127 @@ public class SeedData
             Log.Debug("OIDC IdentityProviders already populated");
         }
     }
+    private static async Task SeedOrganizationsAsync(ApplicationDbContext context)
+    {
+        if (!await context.Organizations.AnyAsync())
+        {
+            var organizations = new List<Organization>
+        {
+            new Organization { Name = "Pegah", }, // Replace with actual data
+            // Add more organizations as needed
+        };
+
+            await context.Organizations.AddRangeAsync(organizations);
+            await context.SaveChangesAsync();
+        }
+    }
 
     private static async Task SeedRolesAndUsersAsync(RoleManager<IdentityRole<int>> roleMgr, UserManager<ApplicationUser> userMgr)
     {
-        // Check and create 'admin' role if it does not exist
-        var adminRole = await roleMgr.FindByNameAsync("admin");
-        if (adminRole == null)
+        // Seed roles
+        var roles = new List<string> { "Admin", "User" }; // Existing roles
+        roles.AddRange(Config.OrganizationRoles); // Add OrganizationRoles to the roles list
+
+        foreach (var role in roles.Distinct()) // Ensure uniqueness
         {
-            adminRole = new IdentityRole<int>("admin");
-            var result = await roleMgr.CreateAsync(adminRole);
-            if (!result.Succeeded)
+            if (!await roleMgr.RoleExistsAsync(role))
             {
-                throw new Exception($"Failed to create role 'admin': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                await roleMgr.CreateAsync(new IdentityRole<int>(role));
             }
-            Log.Debug("Admin role created");
+        }
+
+        // Seed admin user
+        var admin = new ApplicationUser
+        {
+            UserName = "admin",
+            Email = "admin@sapegah.com",
+            EmailConfirmed = true,
+            AccessFailedCount = 0,
+            PhoneNumber = "09120000000",
+            TwoFactorEnabled = false,
+            NormalizedUserName = "SAP",
+            PhoneNumberConfirmed = true,
+        };
+
+        // Create the admin user if it doesn't already exist
+        var result = await userMgr.CreateAsync(admin, "Pegah@admin1234");
+        if (result.Succeeded)
+        {
+            // Assign roles to the admin user
+            await userMgr.AddToRoleAsync(admin, "Admin");
+
+            // Add organization claim
+            await userMgr.AddClaimAsync(admin, new Claim("organizationId", "12")); // Replace with the actual organization ID
+            await userMgr.AddClaimAsync(admin, new Claim("organizationName", "Pegah")); // Optional claim
         }
         else
         {
-            Log.Debug("Admin role already exists");
+            // Handle user creation failure if necessary
+            throw new Exception($"Failed to create admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
         }
 
-        // Check and create 'admin' user if it does not exist
-        var admin = await userMgr.FindByNameAsync("admin");
-        if (admin == null)
+        // Optionally seed additional organization admin users
+        foreach (var orgAdmin in Config.OrganizationRoles)
         {
-            admin = new ApplicationUser
+            var adminUser = new ApplicationUser
             {
-                UserName = "admin",
-                Email = "admin@nill.com",
+                UserName = orgAdmin.ToLower(), // Ensure unique username
+                Email = $"{orgAdmin.ToLower()}@sapegah.com",
                 EmailConfirmed = true,
                 AccessFailedCount = 0,
-                PhoneNumber = "09203216120",
+                PhoneNumber = "0912000000", // Change as needed
                 TwoFactorEnabled = false,
+                NormalizedUserName = orgAdmin.ToUpper(),
+                PhoneNumberConfirmed = true,
             };
 
-            var result = await userMgr.CreateAsync(admin, "Heli@ghar771379");
-            if (!result.Succeeded)
+            var adminResult = await userMgr.CreateAsync(adminUser, "Mihan@admin1234");
+            if (adminResult.Succeeded)
             {
-                throw new Exception($"Failed to create user 'admin': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                // Assign roles to the additional organization admin users
+                await userMgr.AddToRoleAsync(adminUser, orgAdmin);
+                await userMgr.AddClaimAsync(adminUser, new Claim("organizationId", "12")); // Replace with actual organization ID
+                await userMgr.AddClaimAsync(adminUser, new Claim("organizationName", "Mihan")); // Optional claim
             }
-
-            result = await userMgr.AddToRoleAsync(admin, "admin");
-            if (!result.Succeeded)
+            else
             {
-                throw new Exception($"Failed to assign role to user 'admin': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                throw new Exception($"Failed to create user {orgAdmin}: {string.Join(", ", adminResult.Errors.Select(e => e.Description))}");
             }
-
-            var claims = new List<Claim>
-            {
-                new Claim(JwtClaimTypes.Name, "Admin User"),
-                new Claim(JwtClaimTypes.GivenName, "Admin"),
-                new Claim(JwtClaimTypes.FamilyName, "User"),
-                new Claim(JwtClaimTypes.WebSite, "https://www.sapegah.com")
-            };
-
-            result = await userMgr.AddClaimsAsync(admin, claims);
-            if (!result.Succeeded)
-            {
-                throw new Exception($"Failed to add claims to user 'admin': {string.Join(", ", result.Errors.Select(e => e.Description))}");
-            }
-
-            Log.Debug("Admin user created");
         }
-        else
+    }
+
+
+    private static async Task SeedOrganizationUsersAsync(UserManager<ApplicationUser> userMgr)
+    {
+        var organizationUsers = new List<ApplicationUser>
         {
-            Log.Debug("Admin user already exists");
+            new ApplicationUser
+            {
+                UserName = "orgManager",
+                Email = "orgmanager@sapegah.com",
+                EmailConfirmed = true,
+                AccessFailedCount = 0,
+                PhoneNumber = "09120000001",
+                TwoFactorEnabled = false,
+                NormalizedUserName = "ORG_MANAGER",
+                PhoneNumberConfirmed = true,
+            },
+            // Add more users as needed
+        };
+
+        foreach (var user in organizationUsers)
+        {
+            var result = await userMgr.CreateAsync(user, "Sap@orgmanager1234");
+            if (result.Succeeded)
+            {
+                await userMgr.AddToRoleAsync(user, "PegahAdmin");
+                await userMgr.AddClaimAsync(user, new Claim("organizationId", "12")); // Replace with actual organization ID
+                await userMgr.AddClaimAsync(user, new Claim("organizationName", "Pegah")); // Optional claim
+            }
+            else
+            {
+                throw new Exception($"Failed to create organization user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
         }
     }
 }

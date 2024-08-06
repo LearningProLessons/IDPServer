@@ -119,7 +119,7 @@ namespace IDPServer.Pages.Account.Create
                 }
 
                 // Assign the 'company_user' role to the newly created user
-                var userRoleResult = await _userManager.AddToRoleAsync(user, "company_user");
+                var userRoleResult = await _userManager.AddToRoleAsync(user, "employee");
                 if (!userRoleResult.Succeeded)
                 {
                     // Handle errors from role assignment
