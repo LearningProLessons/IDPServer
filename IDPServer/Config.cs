@@ -10,23 +10,17 @@ public static class Config
         {
             new IdentityResources.OpenId(),
             new IdentityResources.Profile(),
+            new IdentityResource("organizations", "User organizations", new List<string> { "organizationId" }),
             new IdentityResource("roles", "User roles", new List<string> { "role" }), // Identity resource for roles
             new IdentityResource("name", "User name", new List<string> { "name" }) // Identity resource for user 
         };
 
-    // Method to generate read and write scopes
-    public static IEnumerable<ApiScope> GenerateScopes(string baseString)
-    {
-        return new List<ApiScope>
-        {
-            new ApiScope($"{baseString}.read", $"Read access for {baseString}"),
-            new ApiScope($"{baseString}.write", $"Write access for {baseString}")
-        };
-    }
-
+  
     public static IEnumerable<ApiScope> ApiScopes =>
       new List<ApiScope>()
       {
+       new ApiScope("organization.read", "Read organization data"),
+       new ApiScope("organization.write", "Write organization data"),
       };
 
 
@@ -46,8 +40,11 @@ public static class Config
             AllowedScopes = {
                 "openid",
                 "profile",
-                "roles", // Include roles scope
-                "name", // Include name scope
+                "roles",
+                "name",
+                "organizations", // Include organization scope
+                "organization.read", // Include organization read scope
+                "organization.write", // Include organization write scope
             },
             AccessTokenLifetime = 3600, // 1 hour
             IdentityTokenLifetime = 300, // 5 minutes
@@ -62,4 +59,14 @@ public static class Config
             Enabled = true
         }
     };
+
+
+    private static IEnumerable<ApiScope> GenerateScopes(string baseString)
+    {
+        return new List<ApiScope>
+        {
+            new ApiScope($"{baseString}.read", $"Read access for {baseString}"),
+            new ApiScope($"{baseString}.write", $"Write access for {baseString}")
+        };
+    }
 }

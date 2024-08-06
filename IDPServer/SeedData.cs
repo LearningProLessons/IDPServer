@@ -112,75 +112,52 @@ public class SeedData
     }
 
 
-
-
-
     private static async Task SeedRolesAndUsersAsync(RoleManager<IdentityRole<int>> roleMgr, UserManager<ApplicationUser> userMgr)
     {
-        // Check and create 'admin' role if it does not exist
-        var adminRole = await roleMgr.FindByNameAsync("admin");
-        if (adminRole == null)
+        // Seed roles
+        var roles = new[] { "Admin", "User", "OrganizationManager" };
+        foreach (var role in roles)
         {
-            adminRole = new IdentityRole<int>("admin");
-            var result = await roleMgr.CreateAsync(adminRole);
-            if (!result.Succeeded)
+            if (!await roleMgr.RoleExistsAsync(role))
             {
-                throw new Exception($"Failed to create role 'admin': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                await roleMgr.CreateAsync(new IdentityRole<int>(role));
             }
-            Log.Debug("Admin role created");
+        }
+
+        // Seed admin user
+        var admin = new ApplicationUser
+        {
+            UserName = "admin",
+            Email = "admin@sapegah.com",
+            EmailConfirmed = true,
+            AccessFailedCount = 0,
+            PhoneNumber = "09120000000",
+            TwoFactorEnabled = false,
+            NormalizedUserName = "SAP",
+            PhoneNumberConfirmed = true,
+        };
+
+        // Create the admin user if it doesn't already exist
+        var result = await userMgr.CreateAsync(admin, "Sap@admin1234");
+        if (result.Succeeded)
+        {
+            // Assign roles to the admin user
+            await userMgr.AddToRoleAsync(admin, "Admin");
+
+            // Add organization claim
+            await userMgr.AddClaimAsync(admin, new Claim("organizationId", "12")); // Replace with the actual organization ID
+
+            // If you have more organization-related claims, add them here as well
+            await userMgr.AddClaimAsync(admin, new Claim("organizationName", "Pegah")); // Optional claim
         }
         else
         {
-            Log.Debug("Admin role already exists");
-        }
-
-        // Check and create 'admin' user if it does not exist
-        var admin = await userMgr.FindByNameAsync("admin");
-        if (admin == null)
-        {
-            admin = new ApplicationUser
-            {
-                UserName = "admin",
-                Email = "admin@sapegah.com",
-                EmailConfirmed = true,
-                AccessFailedCount = 0,
-                PhoneNumber = "09120000000",
-                TwoFactorEnabled = false,
-                NormalizedUserName = "SAP",
-                PhoneNumberConfirmed = true,
-            };
-
-            var result = await userMgr.CreateAsync(admin, "Sap@admin1234");
-            if (!result.Succeeded)
-            {
-                throw new Exception($"Failed to create user 'admin': {string.Join(", ", result.Errors.Select(e => e.Description))}");
-            }
-
-            result = await userMgr.AddToRoleAsync(admin, "admin");
-            if (!result.Succeeded)
-            {
-                throw new Exception($"Failed to assign role to user 'admin': {string.Join(", ", result.Errors.Select(e => e.Description))}");
-            }
-
-            var claims = new List<Claim>
-            {
-                new(JwtClaimTypes.Name, "Admin User"),
-                new(JwtClaimTypes.GivenName, "Admin"),
-                new(JwtClaimTypes.FamilyName, "User"),
-                new(JwtClaimTypes.WebSite, "https://www.sapegah.com")
-            };
-
-            result = await userMgr.AddClaimsAsync(admin, claims);
-            if (!result.Succeeded)
-            {
-                throw new Exception($"Failed to add claims to user 'admin': {string.Join(", ", result.Errors.Select(e => e.Description))}");
-            }
-
-            Log.Debug("Admin user created");
-        }
-        else
-        {
-            Log.Debug("Admin user already exists");
+            // Handle user creation failure if necessary
+            throw new Exception($"Failed to create admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
         }
     }
+
+
+
+
 }
