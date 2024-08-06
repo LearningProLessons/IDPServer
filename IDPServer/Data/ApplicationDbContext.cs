@@ -12,8 +12,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         : base(options)
     {
     }
-    public DbSet<Company> Companies { get; set; } // Add DbSet for companies
-
+    public DbSet<Organization> Organizations { get; set; } // Include this line
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

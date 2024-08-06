@@ -58,7 +58,7 @@ namespace IDPServer.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Companies",
+                name: "Organizations",
                 schema: "Sso",
                 columns: table => new
                 {
@@ -68,7 +68,7 @@ namespace IDPServer.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Companies", x => x.Id);
+                    table.PrimaryKey("PK_Organizations", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -259,7 +259,7 @@ namespace IDPServer.Data.Migrations
                 schema: "Sso");
 
             migrationBuilder.DropTable(
-                name: "Companies",
+                name: "Organizations",
                 schema: "Sso");
 
             migrationBuilder.DropTable(

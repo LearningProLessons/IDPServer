@@ -1,16 +1,17 @@
 ﻿using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.EntityFramework.Mappers;
-using Duende.IdentityServer.Models;
-using IdentityModel;
 using IDPServer.Data;
 using IDPServer.Models;
-
+using Serilog;
+using Duende.IdentityServer.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Serilog;
 using System.Security.Claims;
+using IDPServer.Models.Common;
+
 
 namespace IDPServer;
+
 
 public class SeedData
 {
@@ -30,6 +31,7 @@ public class SeedData
 
         // Seed IdentityServer data
         await SeedConfigurationDataAsync(configurationContext);
+        await SeedOrganizationsAsync(appContext);
 
         // Seed roles and users
         await SeedRolesAndUsersAsync(roleMgr, userMgr);
@@ -79,19 +81,22 @@ public class SeedData
             Log.Debug("ApiScopes already populated");
         }
 
-        //if (!await context.ApiResources.AnyAsync())
-        //{
-        //    Log.Debug("ApiResources being populated");
-        //    foreach (var scope in Config.ApiResources.ToList())
-        //    {
-        //        context.ApiResources.Add(scope.ToEntity());
-        //    }
-        //    await context.SaveChangesAsync();
-        //}
-        //else
-        //{
-        //    Log.Debug("ApiResources already populated");
-        //}
+        // Uncomment this block if you are using ApiResources
+        /*
+        if (!await context.ApiResources.AnyAsync())
+        {
+            Log.Debug("ApiResources being populated");
+            foreach (var resource in Config.ApiResources.ToList())
+            {
+                context.ApiResources.Add(resource.ToEntity());
+            }
+            await context.SaveChangesAsync();
+        }
+        else
+        {
+            Log.Debug("ApiResources already populated");
+        }
+        */
 
         if (!await context.IdentityProviders.AnyAsync())
         {
@@ -110,12 +115,25 @@ public class SeedData
             Log.Debug("OIDC IdentityProviders already populated");
         }
     }
+    private static async Task SeedOrganizationsAsync(ApplicationDbContext context)
+    {
+        if (!await context.Organizations.AnyAsync())
+        {
+            var organizations = new List<Organization>
+        {
+            new Organization { Name = "Pegah", }, // Replace with actual data
+            // Add more organizations as needed
+        };
 
+            await context.Organizations.AddRangeAsync(organizations);
+            await context.SaveChangesAsync();
+        }
+    }
 
     private static async Task SeedRolesAndUsersAsync(RoleManager<IdentityRole<int>> roleMgr, UserManager<ApplicationUser> userMgr)
     {
         // Seed roles
-        var roles = new[] { "Admin", "User", "OrganizationManager" };
+        var roles = new[] { "Admin", "User", "PegahAdmin" };
         foreach (var role in roles)
         {
             if (!await roleMgr.RoleExistsAsync(role))
@@ -144,10 +162,8 @@ public class SeedData
             // Assign roles to the admin user
             await userMgr.AddToRoleAsync(admin, "Admin");
 
-            // Add organization claim
-            await userMgr.AddClaimAsync(admin, new Claim("organizationId", "12")); // Replace with the actual organization ID
-
-            // If you have more organization-related claims, add them here as well
+            // Add organization-related claims
+            await userMgr.AddClaimAsync(admin, new Claim("organizationId", "12")); // Replace with actual organization ID
             await userMgr.AddClaimAsync(admin, new Claim("organizationName", "Pegah")); // Optional claim
         }
         else
@@ -155,9 +171,42 @@ public class SeedData
             // Handle user creation failure if necessary
             throw new Exception($"Failed to create admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
         }
+
+        // Optionally: Seed more users or organizations here
+        await SeedOrganizationUsersAsync(userMgr);
     }
 
+    private static async Task SeedOrganizationUsersAsync(UserManager<ApplicationUser> userMgr)
+    {
+        var organizationUsers = new List<ApplicationUser>
+        {
+            new ApplicationUser
+            {
+                UserName = "orgManager",
+                Email = "orgmanager@sapegah.com",
+                EmailConfirmed = true,
+                AccessFailedCount = 0,
+                PhoneNumber = "09120000001",
+                TwoFactorEnabled = false,
+                NormalizedUserName = "ORG_MANAGER",
+                PhoneNumberConfirmed = true,
+            },
+            // Add more users as needed
+        };
 
-
-
+        foreach (var user in organizationUsers)
+        {
+            var result = await userMgr.CreateAsync(user, "Sap@orgmanager1234");
+            if (result.Succeeded)
+            {
+                await userMgr.AddToRoleAsync(user, "PegahAdmin");
+                await userMgr.AddClaimAsync(user, new Claim("organizationId", "12")); // Replace with actual organization ID
+                await userMgr.AddClaimAsync(user, new Claim("organizationName", "Pegah")); // Optional claim
+            }
+            else
+            {
+                throw new Exception($"Failed to create organization user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
+        }
+    }
 }

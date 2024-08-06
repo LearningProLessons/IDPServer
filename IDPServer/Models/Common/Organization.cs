@@ -1,7 +1,9 @@
 ﻿namespace IDPServer.Models.Common;
 
-public class Company
+public class Organization
 {
     public int Id { get; set; }
     public string Name { get; set; }
+    
 }
+

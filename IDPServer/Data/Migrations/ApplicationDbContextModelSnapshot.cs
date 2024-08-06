@@ -91,7 +91,7 @@ namespace IDPServer.Data.Migrations
                     b.ToTable("AspNetUsers", "Sso");
                 });
 
-            modelBuilder.Entity("IDPServer.Models.Common.Company", b =>
+            modelBuilder.Entity("IDPServer.Models.Common.Organization", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -105,7 +105,7 @@ namespace IDPServer.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Companies", "Sso");
+                    b.ToTable("Organizations", "Sso");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>

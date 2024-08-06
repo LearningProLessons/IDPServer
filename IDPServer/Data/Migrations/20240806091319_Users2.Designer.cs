@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IDPServer.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240806070510_Users2")]
+    [Migration("20240806091319_Users2")]
     partial class Users2
     {
         /// <inheritdoc />
@@ -94,7 +94,7 @@ namespace IDPServer.Data.Migrations
                     b.ToTable("AspNetUsers", "Sso");
                 });
 
-            modelBuilder.Entity("IDPServer.Models.Common.Company", b =>
+            modelBuilder.Entity("IDPServer.Models.Common.Organization", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -108,7 +108,7 @@ namespace IDPServer.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Companies", "Sso");
+                    b.ToTable("Organizations", "Sso");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
