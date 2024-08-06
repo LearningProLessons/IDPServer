@@ -4,7 +4,7 @@ using Duende.IdentityServer.Models;
 using IdentityModel;
 using IDPServer.Data;
 using IDPServer.Models;
-using IDPServer.Models.Common;
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -32,7 +32,7 @@ public class SeedData
         await SeedConfigurationDataAsync(configurationContext);
 
         // Seed roles and users
-        await SeedRolesAndUsersAsync(roleMgr, userMgr, appContext);
+        await SeedRolesAndUsersAsync(roleMgr, userMgr);
     }
 
     private static async Task SeedConfigurationDataAsync(ConfigurationDbContext context)
@@ -115,155 +115,72 @@ public class SeedData
 
 
 
-    private static async Task SeedRolesAndUsersAsync(
-    RoleManager<IdentityRole<int>> roleMgr,
-    UserManager<ApplicationUser> userMgr,
-    ApplicationDbContext dbContext)
+    private static async Task SeedRolesAndUsersAsync(RoleManager<IdentityRole<int>> roleMgr, UserManager<ApplicationUser> userMgr)
     {
-        // Ensure roles exist
-        var roles = new[] { "admin", "employee", "manager" }; // Define roles
-        foreach (var roleName in roles)
+        // Check and create 'admin' role if it does not exist
+        var adminRole = await roleMgr.FindByNameAsync("admin");
+        if (adminRole == null)
         {
-            if (await roleMgr.FindByNameAsync(roleName) == null)
+            adminRole = new IdentityRole<int>("admin");
+            var result = await roleMgr.CreateAsync(adminRole);
+            if (!result.Succeeded)
             {
-                var role = new IdentityRole<int>(roleName);
-                var result = await roleMgr.CreateAsync(role);
-                if (!result.Succeeded)
-                {
-                    throw new Exception($"Failed to create role '{roleName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
-                }
-                Log.Debug($"Role '{roleName}' created");
+                throw new Exception($"Failed to create role 'admin': {string.Join(", ", result.Errors.Select(e => e.Description))}");
             }
-            else
-            {
-                Log.Debug($"Role '{roleName}' already exists");
-            }
+            Log.Debug("Admin role created");
+        }
+        else
+        {
+            Log.Debug("Admin role already exists");
         }
 
-        // Ensure companies exist using Config
-        foreach (var orgName in Config.Companies)
+        // Check and create 'admin' user if it does not exist
+        var admin = await userMgr.FindByNameAsync("admin");
+        if (admin == null)
         {
-            if (!await dbContext.Companies.AnyAsync(o => o.Name == orgName))
+            admin = new ApplicationUser
             {
-                var company = new Company { Name = orgName };
-                dbContext.Companies.Add(company);
-                await dbContext.SaveChangesAsync();
-                Log.Debug($"Company '{orgName}' created");
-            }
-            else
+                UserName = "admin",
+                Email = "admin@sapegah.com",
+                EmailConfirmed = true,
+                AccessFailedCount = 0,
+                PhoneNumber = "09120000000",
+                TwoFactorEnabled = false,
+                NormalizedUserName = "SAP",
+                PhoneNumberConfirmed = true,
+            };
+
+            var result = await userMgr.CreateAsync(admin, "Sap@admin1234");
+            if (!result.Succeeded)
             {
-                Log.Debug($"Company '{orgName}' already exists");
+                throw new Exception($"Failed to create user 'admin': {string.Join(", ", result.Errors.Select(e => e.Description))}");
             }
+
+            result = await userMgr.AddToRoleAsync(admin, "admin");
+            if (!result.Succeeded)
+            {
+                throw new Exception($"Failed to assign role to user 'admin': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
+
+            var claims = new List<Claim>
+            {
+                new(JwtClaimTypes.Name, "Admin User"),
+                new(JwtClaimTypes.GivenName, "Admin"),
+                new(JwtClaimTypes.FamilyName, "User"),
+                new(JwtClaimTypes.WebSite, "https://www.sapegah.com")
+            };
+
+            result = await userMgr.AddClaimsAsync(admin, claims);
+            if (!result.Succeeded)
+            {
+                throw new Exception($"Failed to add claims to user 'admin': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
+
+            Log.Debug("Admin user created");
         }
-
-        // Get company IDs for easier access
-        var organizationIds = await dbContext.Companies
-            .ToDictionaryAsync(o => o.Name, o => o.Id);
-
-        // Example user creation with roles in different companies
-        var users = new List<(string UserName, string Email, string Password, string PhoneNumber, Dictionary<string, int> RolesAndOrganizations)>
-    {
-        (
-            "admin",
-            "admin@nill.com",
-            "AdminPassword123!",
-            "09203216120",
-            new Dictionary<string, int> { { "admin", organizationIds["شرکت پخش پگاه"] }, { "employee", organizationIds["شرکت لینا"] } }
-        ),
-        (
-            "user1",
-            "user1@example.com",
-            "UserPassword123!",
-            "09203216121",
-            new Dictionary<string, int> { { "employee", organizationIds["شرکت فیروز"] } }
-        )
-    };
-
-        foreach (var (userName, email, password, phoneNumber, rolesAndOrgs) in users)
+        else
         {
-            var user = await userMgr.FindByNameAsync(userName);
-            if (user == null)
-            {
-                user = new ApplicationUser
-                {
-                    UserName = userName,
-                    Email = email,
-                    EmailConfirmed = true,
-                    AccessFailedCount = 0,
-                    PhoneNumber = phoneNumber,
-                    TwoFactorEnabled = false
-                };
-
-                var result = await userMgr.CreateAsync(user, password);
-                if (!result.Succeeded)
-                {
-                    throw new Exception($"Failed to create user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
-                }
-
-                // Assign roles and companies
-                foreach (var (role, orgId) in rolesAndOrgs)
-                {
-                    // Ensure role exists
-                    if (!await roleMgr.RoleExistsAsync(role))
-                    {
-                        throw new Exception($"Role '{role}' does not exist");
-                    }
-
-                    // Assign role to user
-                    result = await userMgr.AddToRoleAsync(user, role);
-                    if (!result.Succeeded)
-                    {
-                        throw new Exception($"Failed to assign role '{role}' to user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
-                    }
-
-                    // Add claims for company using ID
-                    var company = await dbContext.Companies.FindAsync(orgId);
-                    if (company == null)
-                    {
-                        throw new Exception($"Company with ID '{orgId}' not found");
-                    }
-
-                    var claim = new Claim("organization_id", orgId.ToString());
-                    result = await userMgr.AddClaimAsync(user, claim);
-                    if (!result.Succeeded)
-                    {
-                        throw new Exception($"Failed to add company claim '{orgId}' to user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
-                    }
-
-                    // Add claims for roles
-                    var roleClaim = new Claim(JwtClaimTypes.Role, role);
-                    result = await userMgr.AddClaimAsync(user, roleClaim);
-                    if (!result.Succeeded)
-                    {
-                        throw new Exception($"Failed to add role claim '{role}' to user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
-                    }
-
-                    // Add user name claim
-                    var nameClaim = new Claim(JwtClaimTypes.Name, userName);
-                    result = await userMgr.AddClaimAsync(user, nameClaim);
-                    if (!result.Succeeded)
-                    {
-                        throw new Exception($"Failed to add name claim '{userName}' to user '{userName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
-                    }
-
-                    // Add scopes based on role
-                    var scopes = role == "admin"
-                        ? new[] { "all.read", "all.write" }
-                        : new[] { "orders.read", "orders.write" };
-
-                    foreach (var scope in scopes)
-                    {
-                        await userMgr.AddClaimAsync(user, new Claim("scope", scope));
-                    }
-                }
-
-                Log.Debug($"User '{userName}' created with roles and companies");
-            }
-            else
-            {
-                Log.Debug($"User '{userName}' already exists");
-            }
+            Log.Debug("Admin user already exists");
         }
     }
-
 }

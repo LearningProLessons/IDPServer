@@ -1,6 +1,7 @@
 using Serilog;
-using IDPServer.Configs;
+ 
 using IDPServer.Extensions;
+using Microsoft.Extensions.Options;
 
 
 namespace IDPServer;
@@ -8,10 +9,13 @@ internal static class HostingExtensions
 {
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
+        // Bind configuration
+        builder.Services.Configure<AppSettings>(builder.Configuration);
 
-        // Bind configuration to AppSettings model
-        var appSettings = builder.Services.BuildServiceProvider().GetRequiredService<AppSettings>();
+        // Build service provider and get AppSettings
+        var appSettings = builder.Services.BuildServiceProvider().GetRequiredService<IOptions<AppSettings>>().Value;
 
+    
 
         #region ProtectRoute
         // Add services to the container.

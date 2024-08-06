@@ -1,14 +1,27 @@
-﻿
-
-using IDPServer.Configs.Common;
-
-namespace IDPServer.Configs;
-
-public class AppSettings
+﻿public class AppSettings
 {
-    public SerilogSettings Serilog { get; set; } = new SerilogSettings();
-    public ConnectionStrings ConnectionStrings { get; set; } = new ConnectionStrings();
-    public CorsSettings Cors { get; set; } = new CorsSettings();
-    // public UrlSettings UrlSettings { get; set; } = new UrlSettings();
-    // public KestrelSettings Kestrel { get; set; } = new KestrelSettings();
+    public SerilogSettings Serilog { get; set; }
+    public ConnectionStrings ConnectionStrings { get; set; }
+    public CorsSettings Cors { get; set; }
+}
+
+public class SerilogSettings
+{
+    public MinimumLevel MinimumLevel { get; set; }
+}
+
+public class MinimumLevel
+{
+    public string Default { get; set; }
+    public Dictionary<string, string> Override { get; set; }
+}
+
+public class ConnectionStrings
+{
+    public string DefaultConnection { get; set; }
+}
+
+public class CorsSettings
+{
+    public List<string> AllowedOrigins { get; set; }
 }
