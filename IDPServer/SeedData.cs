@@ -133,8 +133,10 @@ public class SeedData
     private static async Task SeedRolesAndUsersAsync(RoleManager<IdentityRole<int>> roleMgr, UserManager<ApplicationUser> userMgr)
     {
         // Seed roles
-        var roles = new[] { "Admin", "User", "PegahAdmin" };
-        foreach (var role in roles)
+        var roles = new List<string> { "Admin", "User" }; // Existing roles
+        roles.AddRange(Config.OrganizationRoles); // Add OrganizationRoles to the roles list
+
+        foreach (var role in roles.Distinct()) // Ensure uniqueness
         {
             if (!await roleMgr.RoleExistsAsync(role))
             {
@@ -156,14 +158,14 @@ public class SeedData
         };
 
         // Create the admin user if it doesn't already exist
-        var result = await userMgr.CreateAsync(admin, "Sap@admin1234");
+        var result = await userMgr.CreateAsync(admin, "Pegah@admin1234");
         if (result.Succeeded)
         {
             // Assign roles to the admin user
             await userMgr.AddToRoleAsync(admin, "Admin");
 
-            // Add organization-related claims
-            await userMgr.AddClaimAsync(admin, new Claim("organizationId", "12")); // Replace with actual organization ID
+            // Add organization claim
+            await userMgr.AddClaimAsync(admin, new Claim("organizationId", "12")); // Replace with the actual organization ID
             await userMgr.AddClaimAsync(admin, new Claim("organizationName", "Pegah")); // Optional claim
         }
         else
@@ -172,9 +174,36 @@ public class SeedData
             throw new Exception($"Failed to create admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
         }
 
-        // Optionally: Seed more users or organizations here
-        await SeedOrganizationUsersAsync(userMgr);
+        // Optionally seed additional organization admin users
+        foreach (var orgAdmin in Config.OrganizationRoles)
+        {
+            var adminUser = new ApplicationUser
+            {
+                UserName = orgAdmin.ToLower(), // Ensure unique username
+                Email = $"{orgAdmin.ToLower()}@sapegah.com",
+                EmailConfirmed = true,
+                AccessFailedCount = 0,
+                PhoneNumber = "0912000000", // Change as needed
+                TwoFactorEnabled = false,
+                NormalizedUserName = orgAdmin.ToUpper(),
+                PhoneNumberConfirmed = true,
+            };
+
+            var adminResult = await userMgr.CreateAsync(adminUser, "Mihan@admin1234");
+            if (adminResult.Succeeded)
+            {
+                // Assign roles to the additional organization admin users
+                await userMgr.AddToRoleAsync(adminUser, orgAdmin);
+                await userMgr.AddClaimAsync(adminUser, new Claim("organizationId", "12")); // Replace with actual organization ID
+                await userMgr.AddClaimAsync(adminUser, new Claim("organizationName", "Mihan")); // Optional claim
+            }
+            else
+            {
+                throw new Exception($"Failed to create user {orgAdmin}: {string.Join(", ", adminResult.Errors.Select(e => e.Description))}");
+            }
+        }
     }
+
 
     private static async Task SeedOrganizationUsersAsync(UserManager<ApplicationUser> userMgr)
     {

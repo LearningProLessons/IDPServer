@@ -60,6 +60,7 @@ public static class Config
         }
     };
 
+    public static readonly string[] OrganizationRoles = { "PegahAdmin", "MihanAdmin" }; // Add this line
 
     private static IEnumerable<ApiScope> GenerateScopes(string baseString)
     {
