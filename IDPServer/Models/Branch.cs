@@ -1,9 +1,7 @@
-﻿namespace IDPServer.Models.Common;
+namespace IDPServer.Models;
 
-public class Organization
+public sealed class Branch
 {
     public int Id { get; set; }
     public string Name { get; set; }
-    
 }
-

@@ -1,9 +1,10 @@
 ﻿using IDPServer;
+using Microsoft.AspNetCore.DataProtection;
 using Serilog;
 using System;
 
 Log.Logger = new LoggerConfiguration()
-    // .WriteTo.Console()
+    .WriteTo.Console()
     .CreateBootstrapLogger();
 
 Console.WriteLine("Starting up");
@@ -12,29 +13,23 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo("/Users/mohammadnazari/.aspnet/DataProtection-Keys"))
+        .SetApplicationName("IDPServer");
+
+    
     builder.Host.UseSerilog((ctx, lc) => lc
-        // .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
+        .WriteTo.Console(
+            outputTemplate:
+            "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
         .Enrich.FromLogContext()
         .ReadFrom.Configuration(ctx.Configuration));
 
-    //builder.WebHost.ConfigureKestrel(serverOptions =>
-    //{
-    //    serverOptions.ListenAnyIP(5001); // Listen on all IPs on port 5000
-    //});
+    
+    builder.Services.ConfigureServices(builder.Configuration);
 
-    // Bind configuration to AppSettings model
-    var appSettings = new AppSettings();
-    builder.Configuration.Bind(appSettings);
-
-    // Add AppSettings to the DI container
-    builder.Services.AddSingleton(appSettings);
-
-    var app = builder
-        .ConfigureServices()
-        .ConfigurePipeline();
-
-    // this seeding is only for the template to bootstrap the DB and users.
-    // in production you will likely want a different approach.
+    var app = builder.Build();
+    app.ConfigurePipeline();
     if (args.Contains("/seed"))
     {
         Console.WriteLine("Seeding database...");

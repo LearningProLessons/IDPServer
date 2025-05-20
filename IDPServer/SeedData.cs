@@ -7,13 +7,11 @@ using Duende.IdentityServer.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using IDPServer.Models.Common;
 
 
 namespace IDPServer;
 
-
-public class SeedData
+public sealed class SeedData
 {
     public static async Task EnsureSeedDataAsync(WebApplication app)
     {
@@ -22,19 +20,20 @@ public class SeedData
         var persistedGrantContext = scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
         var appContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var configurationContext = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
-        var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
+        var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
         var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
         // Apply migrations
         await persistedGrantContext.Database.MigrateAsync();
         await configurationContext.Database.MigrateAsync();
+        await appContext.Database.MigrateAsync();
 
         // Seed IdentityServer data
         await SeedConfigurationDataAsync(configurationContext);
-        await SeedOrganizationsAsync(appContext);
+
 
         // Seed roles and users
-        await SeedRolesAndUsersAsync(roleMgr, userMgr);
+        await SeedRolesAndUsersAsync(roleMgr, userMgr, appContext);
     }
 
     private static async Task SeedConfigurationDataAsync(ConfigurationDbContext context)
@@ -46,6 +45,7 @@ public class SeedData
             {
                 context.Clients.Add(client.ToEntity());
             }
+
             await context.SaveChangesAsync();
         }
         else
@@ -60,6 +60,7 @@ public class SeedData
             {
                 context.IdentityResources.Add(resource.ToEntity());
             }
+
             await context.SaveChangesAsync();
         }
         else
@@ -74,6 +75,7 @@ public class SeedData
             {
                 context.ApiScopes.Add(scope.ToEntity());
             }
+
             await context.SaveChangesAsync();
         }
         else
@@ -81,8 +83,7 @@ public class SeedData
             Log.Debug("ApiScopes already populated");
         }
 
-        // Uncomment this block if you are using ApiResources
-        /*
+
         if (!await context.ApiResources.AnyAsync())
         {
             Log.Debug("ApiResources being populated");
@@ -90,13 +91,14 @@ public class SeedData
             {
                 context.ApiResources.Add(resource.ToEntity());
             }
+
             await context.SaveChangesAsync();
         }
         else
         {
             Log.Debug("ApiResources already populated");
         }
-        */
+
 
         if (!await context.IdentityProviders.AnyAsync())
         {
@@ -115,127 +117,67 @@ public class SeedData
             Log.Debug("OIDC IdentityProviders already populated");
         }
     }
-    private static async Task SeedOrganizationsAsync(ApplicationDbContext context)
+
+
+    private static async Task SeedRolesAndUsersAsync(
+        RoleManager<ApplicationRole> roleManager,
+        UserManager<ApplicationUser> userManager,
+        ApplicationDbContext dbContext)
     {
-        if (!await context.Organizations.AnyAsync())
-        {
-            var organizations = new List<Organization>
-        {
-            new Organization { Name = "Pegah", }, // Replace with actual data
-            // Add more organizations as needed
-        };
+        var roleNames = new[] { "Admin", "CharitySuperAdmin", "CampaignManager", "FinanceManager" };
 
-            await context.Organizations.AddRangeAsync(organizations);
-            await context.SaveChangesAsync();
+        foreach (var roleName in roleNames)
+        {
+            if (!await roleManager.RoleExistsAsync(roleName))
+                await roleManager.CreateAsync(new ApplicationRole(roleName));
         }
-    }
 
-    private static async Task SeedRolesAndUsersAsync(RoleManager<IdentityRole<int>> roleMgr, UserManager<ApplicationUser> userMgr)
-    {
-        // Seed roles
-        var roles = new List<string> { "Admin", "User" }; // Existing roles
-        roles.AddRange(Config.OrganizationRoles); // Add OrganizationRoles to the roles list
-
-        foreach (var role in roles.Distinct()) // Ensure uniqueness
+        if (!await dbContext.Branches.AnyAsync())
         {
-            if (!await roleMgr.RoleExistsAsync(role))
+            var branches = new[]
             {
-                await roleMgr.CreateAsync(new IdentityRole<int>(role));
-            }
-        }
-
-        // Seed admin user
-        var admin = new ApplicationUser
-        {
-            UserName = "admin",
-            Email = "admin@sapegah.com",
-            EmailConfirmed = true,
-            AccessFailedCount = 0,
-            PhoneNumber = "09120000000",
-            TwoFactorEnabled = false,
-            NormalizedUserName = "SAP",
-            PhoneNumberConfirmed = true,
-        };
-
-        // Create the admin user if it doesn't already exist
-        var result = await userMgr.CreateAsync(admin, "Pegah@admin1234");
-        if (result.Succeeded)
-        {
-            // Assign roles to the admin user
-            await userMgr.AddToRoleAsync(admin, "Admin");
-
-            // Add organization claim
-            await userMgr.AddClaimAsync(admin, new Claim("organizationId", "12")); // Replace with the actual organization ID
-            await userMgr.AddClaimAsync(admin, new Claim("organizationName", "Pegah")); // Optional claim
-        }
-        else
-        {
-            // Handle user creation failure if necessary
-            throw new Exception($"Failed to create admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
-        }
-
-        // Optionally seed additional organization admin users
-        foreach (var orgAdmin in Config.OrganizationRoles)
-        {
-            var adminUser = new ApplicationUser
-            {
-                UserName = orgAdmin.ToLower(), // Ensure unique username
-                Email = $"{orgAdmin.ToLower()}@sapegah.com",
-                EmailConfirmed = true,
-                AccessFailedCount = 0,
-                PhoneNumber = "0912000000", // Change as needed
-                TwoFactorEnabled = false,
-                NormalizedUserName = orgAdmin.ToUpper(),
-                PhoneNumberConfirmed = true,
+                new Branch { Name = "Tehran" },
+                new Branch { Name = "Semnan" }, 
+                new Branch { Name = "Isfahhan" },
+                new Branch { Name = "Ahvaz" }
             };
 
-            var adminResult = await userMgr.CreateAsync(adminUser, "Mihan@admin1234");
-            if (adminResult.Succeeded)
-            {
-                // Assign roles to the additional organization admin users
-                await userMgr.AddToRoleAsync(adminUser, orgAdmin);
-                await userMgr.AddClaimAsync(adminUser, new Claim("organizationId", "12")); // Replace with actual organization ID
-                await userMgr.AddClaimAsync(adminUser, new Claim("organizationName", "Mihan")); // Optional claim
-            }
-            else
-            {
-                throw new Exception($"Failed to create user {orgAdmin}: {string.Join(", ", adminResult.Errors.Select(e => e.Description))}");
-            }
+            await dbContext.Branches.AddRangeAsync(branches);
+            await dbContext.SaveChangesAsync();
         }
-    }
 
+        var adminUser = await userManager.FindByNameAsync("admin");
 
-    private static async Task SeedOrganizationUsersAsync(UserManager<ApplicationUser> userMgr)
-    {
-        var organizationUsers = new List<ApplicationUser>
+        if (adminUser == null)
         {
-            new ApplicationUser
+            var branch = await dbContext.Branches.FirstAsync();
+
+            adminUser = new ApplicationUser
             {
-                UserName = "orgManager",
-                Email = "orgmanager@sapegah.com",
+                UserName = "admin",
+                Email = "admin@sapegah.com",
                 EmailConfirmed = true,
                 AccessFailedCount = 0,
-                PhoneNumber = "09120000001",
+                PhoneNumber = "09120000000",
                 TwoFactorEnabled = false,
-                NormalizedUserName = "ORG_MANAGER",
+                NormalizedUserName = "SAP",
                 PhoneNumberConfirmed = true,
-            },
-            // Add more users as needed
-        };
+                BranchId = branch.Id
+            };
 
-        foreach (var user in organizationUsers)
+            var createUserResult = await userManager.CreateAsync(adminUser, "$Dev1234");
+
+            if (!createUserResult.Succeeded)
+            {
+                var errors = string.Join(", ", createUserResult.Errors.Select(e => e.Description));
+                throw new InvalidOperationException($"Failed to create admin user: {errors}");
+            }
+        }
+
+        foreach (var roleName in roleNames)
         {
-            var result = await userMgr.CreateAsync(user, "Sap@orgmanager1234");
-            if (result.Succeeded)
-            {
-                await userMgr.AddToRoleAsync(user, "PegahAdmin");
-                await userMgr.AddClaimAsync(user, new Claim("organizationId", "12")); // Replace with actual organization ID
-                await userMgr.AddClaimAsync(user, new Claim("organizationName", "Pegah")); // Optional claim
-            }
-            else
-            {
-                throw new Exception($"Failed to create organization user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
-            }
+            if (!await userManager.IsInRoleAsync(adminUser, roleName))
+                await userManager.AddToRoleAsync(adminUser, roleName);
         }
     }
 }
