@@ -22,7 +22,7 @@ public sealed class ProfileService : IProfileService
 
         var claims = new List<Claim>
         {
-            new Claim("tenant_id", user.BranchId.ToString()), new Claim("role", roles.FirstOrDefault() ?? "")
+            new Claim("role", roles.FirstOrDefault() ?? "")
         };
 
         context.IssuedClaims.AddRange(claims);

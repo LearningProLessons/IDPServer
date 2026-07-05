@@ -26,7 +26,14 @@ internal static class HostingExtensions
             // options.Conventions.AuthorizePage("/Contact");
             // options.Conventions.AuthorizeFolder("/Dashboard");
             //options.Conventions.AllowAnonymousToPage("/Private/PublicPage");
-            options.Conventions.AllowAnonymousToFolder("/Account/Create");
+
+            // IMPORTANT: this used to only cover "/Account/Create". Since
+            // ConfigurePipeline() calls app.MapRazorPages().RequireAuthorization(),
+            // that left /Account/Login itself behind the same auth requirement —
+            // an unauthenticated visitor hitting Login would get redirected back
+            // to Login forever. The whole Account folder (Login, Create, Logout,
+            // AccessDenied) needs to be reachable anonymously.
+            options.Conventions.AllowAnonymousToFolder("/Account");
         });
 
 
@@ -35,8 +42,12 @@ internal static class HostingExtensions
         services.AddTransient<IdentityScopeRepository>();
         services.AddTransient<ApiScopeRepository>();
 
-        services.AddScoped<IProfileService, ProfileService>();
-
+        // Backs the OTP resend-cooldown / attempt counter in OtpService — fine as
+        // in-memory for now (single instance); swap for a distributed cache
+        // (e.g. Redis) if/when this runs behind more than one instance.
+        services.AddMemoryCache();
+        services.AddSingleton<ISmsSender, ConsoleSmsSender>();
+        services.AddScoped<IOtpService, OtpService>();
 
         services.AddSession(options =>
         {
@@ -96,28 +107,26 @@ internal static class HostingExtensions
             .AddConfigurationStoreCache()
             .AddDeveloperSigningCredential();
 
+        // Registered AFTER AddAspNetIdentity<ApplicationUser>() on purpose: that call
+        // registers Duende's own default IProfileService for ASP.NET Identity, and in
+        // the .NET DI container the LAST registration for a service type wins. Adding
+        // ours first (as it was before) risks silently being shadowed by the default
+        // one, which would drop the "role"/"tenant_id"/"user_type" claims entirely.
+        services.AddScoped<IProfileService, ProfileService>();
 
-        services.AddAuthorization(options =>
-            {
-                options.AddPolicy("CharitySuperAdminPolicy", policy =>
-                    policy.RequireClaim("role", "CharitySuperAdmin")
-                        .RequireClaim("tenant_id"));
+        // IMPORTANT FIX: this used to be
+        //   services.AddAuthentication("Cookies").AddCookie("Cookies", ...).AddGoogle(...)
+        // which explicitly set "Cookies" as the DEFAULT authentication scheme.
+        // But SignInManager<ApplicationUser>.SignInAsync() always writes to
+        // IdentityConstants.ApplicationScheme ("Identity.Application"), never to
+        // "Cookies" — so nothing was actually reading/writing that scheme, while
+        // the real Identity cookie risked NOT being treated as the default. That
+        // could make IdentityServer's own login check think the user was never
+        // signed in even right after a successful Login.cshtml.cs post. Removed;
+        // AddIdentity(...) above already wires up sensible authentication defaults.
+        services.AddAuthorization();
 
-                options.AddPolicy("CampaignManagerPolicy", policy =>
-                    policy.RequireClaim("role", "CampaignManager")
-                        .RequireClaim("tenant_id"));
-
-                options.AddPolicy("FinanceManagerPolicy", policy =>
-                    policy.RequireClaim("role", "FinanceManager")
-                        .RequireClaim("tenant_id"));
-            })
-            .AddAuthentication("Cookies")
-            .AddCookie("Cookies", options =>
-            {
-                options.Cookie.Name = "MyApp.Cookie";
-                options.LoginPath = "/login";
-                options.LogoutPath = "/logout";
-            })
+        services.AddAuthentication()
             .AddGoogle(options =>
             {
                 options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;

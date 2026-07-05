@@ -19,7 +19,7 @@ namespace IDPServer.Data.Migrations
                 schema: "Sso",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -31,17 +31,36 @@ namespace IDPServer.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Branches",
+                name: "AspNetUsers",
                 schema: "Sso",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    UserType = table.Column<int>(type: "int", nullable: false),
+                    TenantId = table.Column<long>(type: "bigint", nullable: true),
+                    IsBlocked = table.Column<bool>(type: "bit", nullable: false),
+                    ForcePasswordChange = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    LastLoginAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Branches", x => x.Id);
+                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -51,7 +70,7 @@ namespace IDPServer.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    RoleId = table.Column<int>(type: "int", nullable: false),
+                    RoleId = table.Column<long>(type: "bigint", nullable: false),
                     ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
@@ -68,48 +87,13 @@ namespace IDPServer.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUsers",
-                schema: "Sso",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    BranchId = table.Column<int>(type: "int", nullable: false),
-                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AspNetUsers_Branches_BranchId",
-                        column: x => x.BranchId,
-                        principalSchema: "Sso",
-                        principalTable: "Branches",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AspNetUserClaims",
                 schema: "Sso",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<long>(type: "bigint", nullable: false),
                     ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
@@ -133,7 +117,7 @@ namespace IDPServer.Data.Migrations
                     LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserId = table.Column<int>(type: "int", nullable: false)
+                    UserId = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -152,8 +136,8 @@ namespace IDPServer.Data.Migrations
                 schema: "Sso",
                 columns: table => new
                 {
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    RoleId = table.Column<int>(type: "int", nullable: false)
+                    UserId = table.Column<long>(type: "bigint", nullable: false),
+                    RoleId = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -179,7 +163,7 @@ namespace IDPServer.Data.Migrations
                 schema: "Sso",
                 columns: table => new
                 {
-                    UserId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<long>(type: "bigint", nullable: false),
                     LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -189,6 +173,62 @@ namespace IDPServer.Data.Migrations
                     table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
                     table.ForeignKey(
                         name: "FK_AspNetUserTokens_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalSchema: "Sso",
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LoginAudits",
+                schema: "Sso",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<long>(type: "bigint", nullable: false),
+                    ClientId = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    Method = table.Column<int>(type: "int", nullable: false),
+                    Succeeded = table.Column<bool>(type: "bit", nullable: false),
+                    FailureReason = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    IpAddress = table.Column<string>(type: "nvarchar(45)", maxLength: 45, nullable: true),
+                    UserAgent = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
+                    OccurredAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LoginAudits", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LoginAudits_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalSchema: "Sso",
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TrustedDevices",
+                schema: "Sso",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<long>(type: "bigint", nullable: false),
+                    DeviceId = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    DeviceName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    Platform = table.Column<int>(type: "int", nullable: false),
+                    TrustedUntil = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    LastUsedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    IsRevoked = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TrustedDevices", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TrustedDevices_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalSchema: "Sso",
                         principalTable: "AspNetUsers",
@@ -235,10 +275,18 @@ namespace IDPServer.Data.Migrations
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AspNetUsers_BranchId",
+                name: "IX_AspNetUsers_PhoneNumber",
                 schema: "Sso",
                 table: "AspNetUsers",
-                column: "BranchId");
+                column: "PhoneNumber",
+                unique: true,
+                filter: "[PhoneNumber] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_TenantId",
+                schema: "Sso",
+                table: "AspNetUsers",
+                column: "TenantId");
 
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
@@ -247,6 +295,19 @@ namespace IDPServer.Data.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LoginAudits_UserId_OccurredAt",
+                schema: "Sso",
+                table: "LoginAudits",
+                columns: new[] { "UserId", "OccurredAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TrustedDevices_UserId_DeviceId",
+                schema: "Sso",
+                table: "TrustedDevices",
+                columns: new[] { "UserId", "DeviceId" },
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -273,15 +334,19 @@ namespace IDPServer.Data.Migrations
                 schema: "Sso");
 
             migrationBuilder.DropTable(
+                name: "LoginAudits",
+                schema: "Sso");
+
+            migrationBuilder.DropTable(
+                name: "TrustedDevices",
+                schema: "Sso");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles",
                 schema: "Sso");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers",
-                schema: "Sso");
-
-            migrationBuilder.DropTable(
-                name: "Branches",
                 schema: "Sso");
         }
     }

@@ -1,4 +1,4 @@
-﻿using Duende.IdentityServer.EntityFramework.DbContexts;
+using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.EntityFramework.Mappers;
 using IDPServer.Data;
 using IDPServer.Models;
@@ -6,13 +6,17 @@ using Serilog;
 using Duende.IdentityServer.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-
 
 namespace IDPServer;
-
+ 
 public sealed class SeedData
 {
+    private static readonly string[] StaffRoleNames =
+    {
+        "Admin",
+
+    };
+
     public static async Task EnsureSeedDataAsync(WebApplication app)
     {
         using var scope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope();
@@ -28,12 +32,13 @@ public sealed class SeedData
         await configurationContext.Database.MigrateAsync();
         await appContext.Database.MigrateAsync();
 
-        // Seed IdentityServer data
+        // Seed IdentityServer data (clients/resources/scopes come from Config.cs)
         await SeedConfigurationDataAsync(configurationContext);
 
+        // Seed staff roles + the admin user
+        await SeedAdminAsync(roleMgr, userMgr);
 
-        // Seed roles and users
-        await SeedRolesAndUsersAsync(roleMgr, userMgr, appContext);
+     
     }
 
     private static async Task SeedConfigurationDataAsync(ConfigurationDbContext context)
@@ -83,7 +88,6 @@ public sealed class SeedData
             Log.Debug("ApiScopes already populated");
         }
 
-
         if (!await context.ApiResources.AnyAsync())
         {
             Log.Debug("ApiResources being populated");
@@ -99,70 +103,38 @@ public sealed class SeedData
             Log.Debug("ApiResources already populated");
         }
 
-
-        if (!await context.IdentityProviders.AnyAsync())
-        {
-            Log.Debug("OIDC IdentityProviders being populated");
-            context.IdentityProviders.Add(new OidcProvider
-            {
-                Scheme = "demoidsrv",
-                DisplayName = "IdentityServer",
-                Authority = "https://demo.duendesoftware.com",
-                ClientId = "login",
-            }.ToEntity());
-            await context.SaveChangesAsync();
-        }
-        else
-        {
-            Log.Debug("OIDC IdentityProviders already populated");
-        }
+        // NOTE: the old demo external OIDC provider (demo.duendesoftware.com) from the
+        // previous project was intentionally dropped — it isn't part of this scenario.
+        // If/when B2B needs external IdP federation (e.g. a partner's own SSO), add it
+        // here as a new OidcProvider/IdentityProvider entry, without touching the rest.
     }
 
-
-    private static async Task SeedRolesAndUsersAsync(
+    private static async Task SeedAdminAsync(
         RoleManager<ApplicationRole> roleManager,
-        UserManager<ApplicationUser> userManager,
-        ApplicationDbContext dbContext)
+        UserManager<ApplicationUser> userManager)
     {
-        var roleNames = new[] { "Admin", "CharitySuperAdmin", "CampaignManager", "FinanceManager" };
-
-        foreach (var roleName in roleNames)
+        foreach (var roleName in StaffRoleNames)
         {
             if (!await roleManager.RoleExistsAsync(roleName))
                 await roleManager.CreateAsync(new ApplicationRole(roleName));
         }
 
-        if (!await dbContext.Branches.AnyAsync())
-        {
-            var branches = new[]
-            {
-                new Branch { Name = "Tehran" },
-                new Branch { Name = "Semnan" }, 
-                new Branch { Name = "Isfahhan" },
-                new Branch { Name = "Ahvaz" }
-            };
-
-            await dbContext.Branches.AddRangeAsync(branches);
-            await dbContext.SaveChangesAsync();
-        }
-
-        var adminUser = await userManager.FindByNameAsync("admin");
+        var adminUser = await userManager.FindByNameAsync("admin@sapegah.com");
 
         if (adminUser == null)
         {
-            var branch = await dbContext.Branches.FirstAsync();
-
             adminUser = new ApplicationUser
             {
-                UserName = "admin",
+                UserName = "admin@sapegah.com", // staff log in with email as username
                 Email = "admin@sapegah.com",
                 EmailConfirmed = true,
-                AccessFailedCount = 0,
                 PhoneNumber = "09120000000",
-                TwoFactorEnabled = false,
-                NormalizedUserName = "SAP",
                 PhoneNumberConfirmed = true,
-                BranchId = branch.Id
+                AccessFailedCount = 0,
+                TwoFactorEnabled = false, // opt-in: admin can enable TOTP later from their profile
+                UserType = UserType.Admin,
+                IsBlocked = false,
+                ForcePasswordChange = false
             };
 
             var createUserResult = await userManager.CreateAsync(adminUser, "$Dev1234");
@@ -174,10 +146,12 @@ public sealed class SeedData
             }
         }
 
-        foreach (var roleName in roleNames)
+        foreach (var roleName in StaffRoleNames)
         {
             if (!await userManager.IsInRoleAsync(adminUser, roleName))
                 await userManager.AddToRoleAsync(adminUser, roleName);
         }
     }
+
+  
 }
