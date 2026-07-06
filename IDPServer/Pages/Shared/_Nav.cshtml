@@ -1,7 +1,7 @@
 @using Duende.IdentityServer.Extensions
 
 @{
-    #nullable enable
+#nullable enable
     string? name = null;
     if (!true.Equals(ViewData["signed-out"]))
     {
@@ -15,14 +15,15 @@
 <!-- ===== Top nav ===== -->
 <nav class="app-navbar">
     <a href="~/" class="navbar-brand">
-        <img src="~/duende-logo.svg" class="icon-banner" alt="" />
+        <img src="~/duende-logo.svg" class="icon-banner" alt=""/>
         Duende IdentityServer
     </a>
 
     @if (!string.IsNullOrWhiteSpace(name))
     {
         <div class="dropdown">
-            <a href="#" class="user-menu-trigger dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <a href="#" class="user-menu-trigger dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown"
+               aria-expanded="false">
                 <span class="user-avatar">@initial</span>
                 @name
             </a>
@@ -49,13 +50,19 @@
 <!-- ===== Hero ===== -->
 <div class="welcome-page pb-0">
     <div class="welcome-hero">
-        <img src="~/duende-logo.svg" class="logo" alt="Duende logo" />
+        <img src="~/duende-logo.svg" class="logo" alt="Duende logo"/>
         <div>
             <h1>
                 Duende IdentityServer
-                <span class="badge bg-secondary">v@version</span>
+                <span class="badge bg-secondary">v
+                    @if (!string.IsNullOrWhiteSpace(version))
+                    {
+                        <text>@version</text>
+                    }
+                </span>
                 <span class="badge bg-success">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="margin-right:3px;vertical-align:1px"><circle cx="12" cy="12" r="10"/></svg>
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                         style="vertical-align: -3px;margin: 2px;"><circle cx="12" cy="12" r="10"/></svg>
                     Running
                 </span>
             </h1>
