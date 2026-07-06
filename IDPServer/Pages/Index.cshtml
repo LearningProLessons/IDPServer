@@ -1,46 +1,151 @@
 @page
 @model IDPServer.Pages.Index;
 
-<div class="welcome-page">
-    <h1>
-        <img src="~/duende-logo.svg" class="logo">
-        Welcome to Duende IdentityServer
-        <small class="text-muted">(version @Model.Version)</small>
-    </h1>
+ 
 
-    <ul>
-        <li>
-            IdentityServer publishes a
-            <a href="~/.well-known/openid-configuration">discovery document</a>
-            where you can find metadata and links to all the endpoints, key material, etc.
-        </li>
-        <li>
-            Click <a href="~/diagnostics">here</a> to see the claims for your current session.
-        </li>
-        <li>
-            Click <a href="~/grants">here</a> to manage your stored grants.
-        </li>
-        <li>
-            Click <a href="~/serversidesessions">here</a> to view the server side sessions.
-        </li>
-        <li>
-            Click <a href="~/ciba/all">here</a> to view your pending CIBA login requests.
-        </li>
-        <li>
-            Here are links to the
-            <a href="https://github.com/duendesoftware/IdentityServer">source code repository</a>,
-            and <a href="https://github.com/duendesoftware/samples">ready to use samples</a>.
-        </li>
-    </ul>
 
-    @if(Model.License != null)
-    {
-        <h2>License</h2>
-        <dl>
-            <dt>Serial Number</dt>
-            <dd>@Model.License.SerialNumber</dd>
-            <dt>Expiration</dt>
-            <dd>@Model.License.Expiration!.Value.ToLongDateString()</dd>
-        </dl>
-    }
+
+
+<!-- Quick actions -->
+<div class="section-eyebrow">Overview</div>
+<div class="section-title">Quick actions</div>
+
+<div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
+    <div class="col">
+        <a href="~/.well-known/openid-configuration" class="card action-card">
+            <div class="action-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="7"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+            </div>
+            <div>
+                <div class="action-title">Discovery document</div>
+                <p class="action-desc">Metadata and links to all endpoints, signing keys, and supported scopes.</p>
+            </div>
+            <div class="action-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/diagnostics" class="card action-card">
+            <div class="action-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+            </div>
+            <div>
+                <div class="action-title">Your session claims</div>
+                <p class="action-desc">Inspect the claims issued for your current signed-in session.</p>
+            </div>
+            <div class="action-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/grants" class="card action-card">
+            <div class="action-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <path
+                        d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+                </svg>
+            </div>
+            <div>
+                <div class="action-title">Stored grants</div>
+                <p class="action-desc">Manage the consent and authorization grants tied to your account.</p>
+            </div>
+            <div class="action-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/serversidesessions" class="card action-card">
+            <div class="action-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <rect x="2" y="3" width="20" height="8" rx="2"/>
+                    <rect x="2" y="13" width="20" height="8" rx="2"/>
+                    <line x1="6" y1="7" x2="6.01" y2="7"/>
+                    <line x1="6" y1="17" x2="6.01" y2="17"/>
+                </svg>
+            </div>
+            <div>
+                <div class="action-title">Server-side sessions</div>
+                <p class="action-desc">View and manage every active session tracked by the server.</p>
+            </div>
+            <div class="action-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/ciba/all" class="card action-card">
+            <div class="action-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+            </div>
+            <div>
+                <div class="action-title">Pending CIBA requests</div>
+                <p class="action-desc">Review backchannel login requests waiting on your approval.</p>
+            </div>
+            <div class="action-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </div>
+        </a>
+    </div>
 </div>
+
+<!-- License -->
+@if (Model.License != null)
+{
+    <div class="section-eyebrow">Deployment</div>
+    <div class="section-title">License</div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <dl class="license-grid">
+                <div>
+                    <dt>Serial number</dt>
+                    <dd>@Model.License.SerialNumber</dd>
+                </div>
+                <div>
+                    <dt>Expiration</dt>
+                    <dd>@Model.License.Expiration!.Value.ToLongDateString()</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+}
