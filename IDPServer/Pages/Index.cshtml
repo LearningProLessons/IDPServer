@@ -6,128 +6,211 @@
 
 
 
-<!-- Quick actions -->
-<div class="section-eyebrow">Overview</div>
-<div class="section-title">Quick actions</div>
+ 
 
-<div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
+<div class="section-eyebrow mt-5">Administration</div>
+<div class="section-title">Identity Management</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 mb-5">
+
+    <div class="col">
+        <a href="~/Admin" class="card action-card">
+            <div>
+                <div class="action-title">Admin Dashboard</div>
+                <p class="action-desc">Overview of the IdentityServer administration portal.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/Admin/Clients" class="card action-card">
+            <div>
+                <div class="action-title">Clients</div>
+                <p class="action-desc">Manage OAuth2/OpenID Connect clients.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/Admin/Clients/New" class="card action-card">
+            <div>
+                <div class="action-title">New Client</div>
+                <p class="action-desc">Register a new application.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/Admin/ApiScopes" class="card action-card">
+            <div>
+                <div class="action-title">API Scopes</div>
+                <p class="action-desc">Manage protected API scopes.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/Admin/ApiScopes/New" class="card action-card">
+            <div>
+                <div class="action-title">New API Scope</div>
+                <p class="action-desc">Create a new API scope.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/Admin/IdentityScopes" class="card action-card">
+            <div>
+                <div class="action-title">Identity Scopes</div>
+                <p class="action-desc">Manage OpenID identity scopes.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/Admin/IdentityScopes/New" class="card action-card">
+            <div>
+                <div class="action-title">New Identity Scope</div>
+                <p class="action-desc">Create a new identity scope.</p>
+            </div>
+        </a>
+    </div>
+
+</div>
+
+
+<div class="section-eyebrow">IdentityServer</div>
+<div class="section-title">Protocol Endpoints</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 mb-5">
+
+    <div class="col">
+        <a href="~/Consent" class="card action-card">
+            <div>
+                <div class="action-title">Consent</div>
+                <p class="action-desc">Review consent workflow.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/Device" class="card action-card">
+            <div>
+                <div class="action-title">Device Flow</div>
+                <p class="action-desc">Device authorization endpoint.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/Ciba" class="card action-card">
+            <div>
+                <div class="action-title">CIBA</div>
+                <p class="action-desc">Backchannel Authentication.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/Ciba/All" class="card action-card">
+            <div>
+                <div class="action-title">Pending CIBA Requests</div>
+                <p class="action-desc">Pending approvals.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/Redirect" class="card action-card">
+            <div>
+                <div class="action-title">Redirect</div>
+                <p class="action-desc">OIDC redirect testing.</p>
+            </div>
+        </a>
+    </div>
+
     <div class="col">
         <a href="~/.well-known/openid-configuration" class="card action-card">
-            <div class="action-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                     stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="7"/>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-            </div>
             <div>
-                <div class="action-title">Discovery document</div>
-                <p class="action-desc">Metadata and links to all endpoints, signing keys, and supported scopes.</p>
-            </div>
-            <div class="action-arrow">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                    <polyline points="12 5 19 12 12 19"/>
-                </svg>
+                <div class="action-title">Discovery Document</div>
+                <p class="action-desc">OpenID Connect metadata.</p>
             </div>
         </a>
     </div>
 
-    <div class="col">
-        <a href="~/diagnostics" class="card action-card">
-            <div class="action-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                     stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                    <circle cx="12" cy="7" r="4"/>
-                </svg>
-            </div>
-            <div>
-                <div class="action-title">Your session claims</div>
-                <p class="action-desc">Inspect the claims issued for your current signed-in session.</p>
-            </div>
-            <div class="action-arrow">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                    <polyline points="12 5 19 12 12 19"/>
-                </svg>
-            </div>
-        </a>
-    </div>
-
-    <div class="col">
-        <a href="~/grants" class="card action-card">
-            <div class="action-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                     stroke-linejoin="round">
-                    <path
-                        d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
-                </svg>
-            </div>
-            <div>
-                <div class="action-title">Stored grants</div>
-                <p class="action-desc">Manage the consent and authorization grants tied to your account.</p>
-            </div>
-            <div class="action-arrow">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                    <polyline points="12 5 19 12 12 19"/>
-                </svg>
-            </div>
-        </a>
-    </div>
-
-    <div class="col">
-        <a href="~/serversidesessions" class="card action-card">
-            <div class="action-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                     stroke-linejoin="round">
-                    <rect x="2" y="3" width="20" height="8" rx="2"/>
-                    <rect x="2" y="13" width="20" height="8" rx="2"/>
-                    <line x1="6" y1="7" x2="6.01" y2="7"/>
-                    <line x1="6" y1="17" x2="6.01" y2="17"/>
-                </svg>
-            </div>
-            <div>
-                <div class="action-title">Server-side sessions</div>
-                <p class="action-desc">View and manage every active session tracked by the server.</p>
-            </div>
-            <div class="action-arrow">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                    <polyline points="12 5 19 12 12 19"/>
-                </svg>
-            </div>
-        </a>
-    </div>
-
-    <div class="col">
-        <a href="~/ciba/all" class="card action-card">
-            <div class="action-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                     stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                </svg>
-            </div>
-            <div>
-                <div class="action-title">Pending CIBA requests</div>
-                <p class="action-desc">Review backchannel login requests waiting on your approval.</p>
-            </div>
-            <div class="action-arrow">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                    <polyline points="12 5 19 12 12 19"/>
-                </svg>
-            </div>
-        </a>
-    </div>
 </div>
+
+
+
+<div class="section-eyebrow">Sessions</div>
+<div class="section-title">Current User</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 mb-5">
+
+    <div class="col">
+        <a href="~/Diagnostics" class="card action-card">
+            <div>
+                <div class="action-title">Diagnostics</div>
+                <p class="action-desc">Inspect issued claims.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/Grants" class="card action-card">
+            <div>
+                <div class="action-title">Stored Grants</div>
+                <p class="action-desc">Manage consent grants.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/ServerSideSessions" class="card action-card">
+            <div>
+                <div class="action-title">Server Side Sessions</div>
+                <p class="action-desc">Manage active sessions.</p>
+            </div>
+        </a>
+    </div>
+
+</div>
+
+
+<div class="section-eyebrow">Developer</div>
+<div class="section-title">Utilities</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 mb-5">
+
+    <div class="col">
+        <a href="~/Portal" class="card action-card">
+            <div>
+                <div class="action-title">Portal</div>
+                <p class="action-desc">Developer portal.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/ExternalLogin/Challenge" class="card action-card">
+            <div>
+                <div class="action-title">External Login Challenge</div>
+                <p class="action-desc">Test external providers.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <a href="~/Home/Error" class="card action-card">
+            <div>
+                <div class="action-title">Error Page</div>
+                <p class="action-desc">Application error page.</p>
+            </div>
+        </a>
+    </div>
+
+</div>
+
 
 <!-- License -->
 @if (Model.License != null)
