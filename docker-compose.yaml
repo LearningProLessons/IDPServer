@@ -1,0 +1,50 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    user: root
+    container_name: sqlserver
+    environment:
+      SA_PASSWORD: "Hello&Run1234"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Express
+    ports:
+      - "1434:1433"
+    volumes:
+      - ./mssql-data:/var/opt/mssql
+    networks:
+      - internal_net
+    restart: unless-stopped
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Hello&Run1234" -C -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  app1:
+    ports:
+      - "6969:80"
+    build:
+      context: .
+      dockerfile: IDPServer/Dockerfile
+    container_name: artix-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      DOTNET_RUNNING_IN_CONTAINER: "true"
+      ASPNETCORE_URLS: "http://+:80"
+    volumes:
+      - dataprotection_keys:/app/dataprotection-keys
+      - ./IDPServer/setup.sh:/app/IDPServer/setup.sh:ro  # Mount setup script
+    entrypoint: ["/app/entrypoint.sh"]  # Use custom entrypoint
+    depends_on:
+      sqlserver:
+        condition: service_healthy  # Wait for SQL Server health check
+    networks:
+      - internal_net
+    restart: unless-stopped
+    healthcheck:
+      test: curl -f http://localhost:80/ || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
