@@ -4,11 +4,9 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 # Set the working directory inside the container
 WORKDIR /app
 
-
-# Add this to your Dockerfile
-COPY entrypoint.sh /app/entrypoint.sh
+# Copy entrypoint.sh from the IDPServer directory
+COPY IDPServer/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
-
 
 # Copy the .csproj file and restore dependencies
 COPY IDPServer/IDPServer.csproj . 

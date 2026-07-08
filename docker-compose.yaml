@@ -1,3 +1,14 @@
+networks:
+  internal_net:
+    driver: bridge
+
+volumes:
+  rabbitmq_data:
+  postgres_data:
+  dataprotection_keys:
+  file_storage:
+  mongodb_data:
+
 services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -34,11 +45,20 @@ services:
       ASPNETCORE_URLS: "http://+:80"
     volumes:
       - dataprotection_keys:/app/dataprotection-keys
-      - ./IDPServer/setup.sh:/app/IDPServer/setup.sh:ro  # Mount setup script
-    entrypoint: ["/app/entrypoint.sh"]  # Use custom entrypoint
+      - ./IDPServer/setup.sh:/app/setup.sh:ro  # Mount setup.sh to /app/
+    command: >
+      sh -c "
+        if [ -f /app/setup.sh ]; then
+          echo 'Running setup script...'
+          chmod +x /app/setup.sh
+          /app/setup.sh
+        fi &&
+        echo 'Starting application...' &&
+        dotnet IDPServer.dll
+      "
     depends_on:
       sqlserver:
-        condition: service_healthy  # Wait for SQL Server health check
+        condition: service_healthy
     networks:
       - internal_net
     restart: unless-stopped
